@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# Create build directory, if needed.
+if [ ! -d "./build" ]; then
+  mkdir build
+fi
+
+# Compile / join CoffeeScript
+coffee --print --compile \
+  ./src/Rickshaw.coffee \
+  > ./build/rickshaw.js
+
+# Full version with dependencies
+cat ./build/rickshaw.js ./vendor/mustache.js > ./build/rickshaw.full.js
+
+echo "Rickshaw build successful!"
