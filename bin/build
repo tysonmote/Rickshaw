@@ -8,6 +8,10 @@ fi
 # Compile / join CoffeeScript
 coffee --print --compile \
   ./src/Rickshaw.coffee \
+  ./src/Rickshaw.Model.coffee \
+  ./src/Rickshaw.Collection.coffee \
+  ./src/Rickshaw.Persistence.coffee \
+  ./src/Rickshaw.Controllers.coffee \
   > ./build/rickshaw.js
 
 # Full version with dependencies
