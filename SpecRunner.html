@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Jasmine Spec Runner</title>
+
+  <link rel="shortcut icon" type="image/png" href="spec/lib/jasmine-1.1.0/jasmine_favicon.png">
+
+  <link rel="stylesheet" type="text/css" href="spec/lib/jasmine-1.1.0/jasmine.css">
+  <script type="text/javascript" src="spec/lib/jasmine-1.1.0/jasmine.js"></script>
+  <script type="text/javascript" src="spec/lib/jasmine-1.1.0/jasmine-html.js"></script>
+
+  <!-- include source files here... -->
+  <script type="text/javascript" src="spec/spec/SpecHelper.js"></script>
+  <script type="text/javascript" src="spec/spec/RickshawSpec.js"></script>
+  <script type="text/javascript" src="spec/spec/RickshawModelSpec.js"></script>
+
+  <!-- include spec files here... -->
+  <script type="text/javascript" src="vendor/mootools-core.js"></script>
+  <script type="text/javascript" src="vendor/mustache.js"></script>
+  <script type="text/javascript" src="src/Rickshaw.js"></script>
+  <script type="text/javascript" src="src/Rickshaw.Model.js"></script>
+  <script type="text/javascript" src="src/Rickshaw.Persistence.js"></script>
+  <script type="text/javascript" src="src/Rickshaw.Collection.js"></script>
+  <script type="text/javascript" src="src/Rickshaw.Controllers.js"></script>
+
+  <script type="text/javascript">
+    (function() {
+      var jasmineEnv = jasmine.getEnv();
+      jasmineEnv.updateInterval = 1000;
+
+      var trivialReporter = new jasmine.TrivialReporter();
+
+      jasmineEnv.addReporter(trivialReporter);
+
+      jasmineEnv.specFilter = function(spec) {
+        return trivialReporter.specFilter(spec);
+      };
+
+      var currentWindowOnload = window.onload;
+
+      window.onload = function() {
+        if (currentWindowOnload) {
+          currentWindowOnload();
+        }
+        execJasmine();
+      };
+
+      function execJasmine() {
+        jasmineEnv.execute();
+      }
+
+    })();
+  </script>
+
+  <style type="text/css" media="screen">
+    #rickshaw-spec-fixture {
+      position: absolute;
+      left: -999999em;
+    }
+  </style>
+</head>
+
+<body>
+</body>
+</html>
