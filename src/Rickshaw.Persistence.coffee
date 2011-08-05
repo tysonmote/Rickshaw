@@ -19,7 +19,7 @@ window.Rickshaw.Persistence._Base = new Class({
     )
   
   _reloaded: (data, callback) ->
-    changed = !Object.equal( data, @_previousData )
+    changed = !Object._equal( data, @_previousData )
     this._setNewData( data )
     this.fireEvent( "dataChange", this ) if changed
     this.fireEvent( "afterFetch", this )
@@ -42,7 +42,7 @@ window.Rickshaw.Persistence._Base = new Class({
     )
   
   _updated: (data, callback) ->
-    changed = !Object.equal( data, @_previousData )
+    changed = !Object._equal( data, @_previousData )
     this._setNewData( data )
     this._refreshId() unless typeof @id == "number"
     this.fireEvent( "dataChange", this ) if changed
