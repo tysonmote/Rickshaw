@@ -1,7 +1,12 @@
 (function() {
   afterEach(function() {
-    return window.tearDownFixture();
+    window.tearDownFixture();
+    return window.resetRickshaw();
   });
+  window.resetRickshaw = function() {
+    console.log("RESET");
+    return $$("head")[0].adopt(new Element("script[src='src/Rickshaw.js'][type='text/javascript']"));
+  };
   window.setupFixture = function(name) {
     var fixtureWrapper, url;
     url = "spec/fixtures/" + name + ".html";
@@ -11,8 +16,7 @@
       async: false,
       onFailure: function(xhr) {
         $(document.body).adopt(fixtureWrapper);
-        fixtureWrapper.innerHTML = xhr.response;
-        return console.log(fixtureWrapper);
+        return fixtureWrapper.innerHTML = xhr.response;
       }
     })).get();
   };

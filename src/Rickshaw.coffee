@@ -6,6 +6,7 @@ window.Rickshaw = {
   Controllers: {}
   Persistence: {}
   
+  templatePrefix: "Rickshaw"
   templateRegex: /^Rickshaw-(\w+)-template$/
   
   # Reload all templates from "Rickshaw-*-template" <script> elements. This is
@@ -16,7 +17,7 @@ window.Rickshaw = {
     
     Rickshaw.Templates = {}
     
-    $$( "script[id^='Rickshaw']" ).each( (el) ->
+    $$( "script[id^='#{@templatePrefix}']" ).each( (el) ->
       if parsedId = idRegex.exec( el.get( "id" ) )
         name = parsedId.getLast()
         Rickshaw.Templates[name] = el.get( "html" )

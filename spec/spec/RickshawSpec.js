@@ -1,13 +1,22 @@
 (function() {
   describe("Rickshaw", function() {
-    return describe("template loading", function() {
-      return it("should load templates and detect their names", function() {
-        setupFixture("simple_templates");
+    return describe("Templates", function() {
+      it("Loads templates and detects names", function() {
+        setupFixture("templates/simple");
         Rickshaw.refreshTemplates();
-        console.log(Rickshaw.Templates);
         return expect(Rickshaw.Templates).toEqual({
           Message: "\n  <span>{{message}}</span>\n",
           Comment_Thing: "\n  {{comment}}\n"
+        });
+      });
+      return it("Allows overiding the prefix and regex", function() {
+        Rickshaw.templateRegex = /Rad-([^-]+)-template/;
+        Rickshaw.templatePrefix = "Rad";
+        setupFixture("templates/custom");
+        Rickshaw.refreshTemplates();
+        return expect(Rickshaw.Templates).toEqual({
+          Other: "{{foo}}",
+          Rickshaw: "{{foo}}"
         });
       });
     });
