@@ -9,15 +9,23 @@
           Comment_Thing: "\n  {{comment}}\n"
         });
       });
-      return it("Allows overiding the prefix and regex", function() {
+      it("Allows overiding the prefix and regex", function() {
+        Rickshaw.refreshTemplates();
+        setupFixture("templates/custom");
         Rickshaw.templateRegex = /Rad-([^-]+)-template/;
         Rickshaw.templatePrefix = "Rad";
-        setupFixture("templates/custom");
         Rickshaw.refreshTemplates();
         return expect(Rickshaw.Templates).toEqual({
           Other: "{{foo}}",
           Rickshaw: "{{foo}}"
         });
+      });
+      return it("Clears out templates on refresh", function() {
+        Rickshaw.refreshTemplates();
+        setupFixture("templates/custom");
+        Rickshaw.templatePrefix = "OMG";
+        Rickshaw.refreshTemplates();
+        return expect(Rickshaw.Templates).toEqual({});
       });
     });
   });

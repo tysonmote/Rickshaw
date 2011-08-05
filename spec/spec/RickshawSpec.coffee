@@ -10,13 +10,24 @@ describe "Rickshaw", ->
       })
       
     it "Allows overiding the prefix and regex", ->
+      Rickshaw.refreshTemplates()
+      setupFixture( "templates/custom" )
+      
       Rickshaw.templateRegex = /Rad-([^-]+)-template/
       Rickshaw.templatePrefix = "Rad"
-      
-      setupFixture( "templates/custom" )
       Rickshaw.refreshTemplates()
       
       expect( Rickshaw.Templates ).toEqual({
         Other: "{{foo}}",
         Rickshaw: "{{foo}}",
       })
+    
+    it "Clears out templates on refresh", ->
+      Rickshaw.refreshTemplates()
+      setupFixture( "templates/custom" )
+      
+      Rickshaw.templatePrefix = "OMG"
+      Rickshaw.refreshTemplates()
+      
+      expect( Rickshaw.Templates ).toEqual({})
+      
