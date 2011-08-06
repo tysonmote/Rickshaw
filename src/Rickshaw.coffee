@@ -56,3 +56,21 @@ Object.extend({
         else value == objectB[key]
     )
 })
+
+# Binds
+# =====
+
+Class.Mutators.Binds = (binds) ->
+  this.implement( "initialize", -> ) if !@prototype.initialize
+  Array.from( binds ).concat( @prototype.Binds || []);
+
+Class.Mutators.initialize = (initialize) ->
+  return ->
+    Array.from( @Binds ).each(
+      ((name) ->
+        if original = this[name]
+          this[name] = original.bind(this)
+      ),
+      this
+    )
+    return initialize.apply( this, arguments )

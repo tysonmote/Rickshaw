@@ -4,7 +4,6 @@
     return window.resetRickshaw();
   });
   window.resetRickshaw = function() {
-    console.log("RESET");
     return $$("head")[0].adopt(new Element("script[src='src/Rickshaw.js'][type='text/javascript']"));
   };
   window.setupFixture = function(name) {
