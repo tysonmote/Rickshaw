@@ -100,3 +100,58 @@ describe "Rickshaw.Model", ->
           foo: "bar"
           baz: true
         })
+  
+  # ===========
+  # = Setting =
+  # ===========
+  
+  describe "Setting", ->
+    beforeEach ->
+      @Todo = new Class({
+        Extends: Rickshaw.Model
+      })
+    
+    describe "With no data", ->
+      beforeEach ->
+        @todo = new @Todo()
+      
+      it "Sets data", ->
+        @todo.set( "foo", "bar" )
+        expect( @todo.data ).toEqual({ foo: "bar" })
+      
+      it "Marks record as dirty", ->
+        @todo.set( "foo", "bar" )
+        expect( @todo.isDirty() ).toBe( true )
+      
+      it "Fires dataChange event", ->
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set( "foo", true )
+        expect( fired ).toBe( true )
+    
+    describe "With data", ->
+      beforeEach ->
+        @todo = new @Todo({
+          id: 123
+          foo: "bar"
+        })
+      
+      it "Overwrites properties", ->
+        @todo.set( "foo", "doo" )
+        expect( @todo.get( "foo" ) ).toEqual( "doo" )
+      
+      it "Marks record as dirty", ->
+        @todo.set( "foo", "doo" )
+        expect( @todo.isDirty() ).toBe( true )
+      
+      it "Fires dataChange event", ->
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set( "foo", true )
+        expect( fired ).toBe( true )
+      
+      it "Doesn't fire dataChange event if value doesn't change", ->
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set( "foo", "bar" )
+        expect( fired ).toBe( false )
