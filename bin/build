@@ -5,6 +5,9 @@ if [ ! -d "./build" ]; then
   mkdir build
 fi
 
+# Compile specs, etc. to cache directory
+coffee --compile --output cache .
+
 # Compile / join CoffeeScript
 coffee --print --compile \
   ./src/Rickshaw.coffee \
