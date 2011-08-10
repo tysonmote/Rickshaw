@@ -41,7 +41,11 @@ window.Rickshaw.Model = new Class({
   # -------
   
   # Return the value of the given property, using a custom getter (if defined).
-  get: (property) -> (@getters[property] || this._get)(property)
+  get: (property) ->
+    if customGetter = @getters[property]
+     customGetter.bind( this )( property )
+    else
+      this._get( property )
   
   _get: (property) -> @data[property]
   
@@ -61,9 +65,17 @@ window.Rickshaw.Model = new Class({
       newData[property] = value
     
     changed = false
-    Object.each( newData, (value, property) =>
-      if (@setters[property] || this._set)(property, value)
+    
+    # Update each value.
+    Object.each( newData, (newValue, property) =>
+      oldValue = @data[property]
+      if customSetter = @setters[property]
+        customSetter.bind( this )( newValue )
+      else
+        this._set( property, newValue )
+      if oldValue != @data[property]
         changed = true
+        @_changedData[property] = newValue
     )
     this.fireEvent( "dataChange", this ) if changed
     return this
@@ -71,10 +83,9 @@ window.Rickshaw.Model = new Class({
   # Return true if `property` was changed to `value`. If the property was
   # already set to `value`, false is returned.
   _set: (property, value) ->
-    return false if @data[property] == value
+    return if @data[property] == value
     @data[property] = value
     @_changedData[property] = value
-    true
   
   # Misc.
   # -----

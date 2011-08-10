@@ -100,6 +100,27 @@ describe "Rickshaw.Model", ->
           foo: "bar"
           baz: true
         })
+    
+    describe "Custom getters", ->
+      beforeEach ->
+        @CustomSetterTodo = new Class({
+          Extends: @Todo
+          
+          getters:
+            foo: -> true
+            bound: -> @isBound
+        })
+        @todo = new @CustomSetterTodo({
+          foo: false
+        })
+      
+      it "Uses custom getter", ->
+        expect( @todo.get( "foo" ) ).toBe( true )
+        expect( @todo.data.foo ).toBe( false )
+      
+      it "Binds custom getter to the instance", ->
+        @todo.isBound = true
+        expect( @todo.get( "bound" ) ).toBe( true )
   
   # ===========
   # = Setting =
@@ -128,6 +149,14 @@ describe "Rickshaw.Model", ->
         @todo.addEvent( "dataChange", -> fired = true )
         @todo.set( "foo", true )
         expect( fired ).toBe( true )
+      
+      it "Accepts object params", ->
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set({ foo: true, bar: true })
+        expect( fired ).toBe( true )
+        expect( @todo.isDirty() ).toBe( true )
+        expect( @todo.data ).toEqual({ foo: true, bar: true })
     
     describe "With data", ->
       beforeEach ->
@@ -155,3 +184,54 @@ describe "Rickshaw.Model", ->
         @todo.addEvent( "dataChange", -> fired = true )
         @todo.set( "foo", "bar" )
         expect( fired ).toBe( false )
+    
+    describe "Custom setters", ->
+      beforeEach ->
+        @CustomSetterTodo = new Class({
+          Extends: @Todo
+          
+          setters:
+            foo: (value) ->
+              @data["foo"] = "value: #{value}"
+            bound: (value) ->
+              @boundValue = value
+        })
+        @todo = new @CustomSetterTodo({
+          foo: "baz"
+        })
+      
+      it "Uses custom setter", ->
+        @todo.set( "foo", "bar" )
+        expect( @todo.get( "foo" ) ).toEqual( "value: bar" )
+      
+      it "Binds custom getter to the instance", ->
+        @todo.set( "bound", true )
+        expect( @todo.boundValue ).toBe( true )
+      
+      it "Marks record as dirty", ->
+        @todo.set( "foo", "bar" )
+        expect( @todo.isDirty() ).toBe( true )
+      
+      it "Fires dataChange event", ->
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set( "foo", "bar" )
+        expect( fired ).toBe( true )
+        fired = false
+        @todo.set( "foo", "bar" )
+        expect( fired ).toBe( false )
+      
+      it "Doesn't fire dataChange event if value doesn't change", ->
+        @todo.set( "foo", "bar" )
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set( "foo", "bar" )
+        expect( fired ).toBe( false )
+        
+      it "Accepts object params", ->
+        fired = false
+        @todo.addEvent( "dataChange", -> fired = true )
+        @todo.set({ foo: "A", bar: "B" })
+        expect( fired ).toBe( true )
+        expect( @todo.isDirty() ).toBe( true )
+        expect( @todo.data ).toEqual({ foo: "value: A", bar: "B" })

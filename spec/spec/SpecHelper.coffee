@@ -3,7 +3,7 @@ afterEach ->
   window.resetRickshaw()
 
 window.resetRickshaw = ->
-  $$("head")[0].adopt( new Element( "script[src='src/Rickshaw.js'][type='text/javascript']" ) )
+  $$("head")[0].adopt( new Element( "script[src='cache/src/Rickshaw.js'][type='text/javascript']" ) )
 
 # ============
 # = Fixtures =
