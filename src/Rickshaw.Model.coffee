@@ -76,16 +76,21 @@ window.Rickshaw.Model = new Class({
       if oldValue != @data[property]
         changed = true
         @_changedData[property] = newValue
+        this._firePropertyChangeHook( property )
     )
     this.fireEvent( "dataChange", this ) if changed
     return this
   
-  # Return true if `property` was changed to `value`. If the property was
-  # already set to `value`, false is returned.
+  # Update the value for the given property only if it is different.
   _set: (property, value) ->
     return if @data[property] == value
     @data[property] = value
     @_changedData[property] = value
+  
+  _firePropertyChangeHook: (property) ->
+    method = "on#{property.camelCase().capitalize()}Change"
+    if typeof this[method] == "function"
+      this[method].bind( this )()
   
   # Misc.
   # -----

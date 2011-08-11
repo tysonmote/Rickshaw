@@ -235,3 +235,29 @@ describe "Rickshaw.Model", ->
         expect( fired ).toBe( true )
         expect( @todo.isDirty() ).toBe( true )
         expect( @todo.data ).toEqual({ foo: "value: A", bar: "B" })
+  
+  # ============================
+  # = Property change handlers =
+  # ============================
+  
+  describe "Property change handlers", ->
+    beforeEach ->
+      @Todo = new Class({
+        Extends: Rickshaw.Model
+        
+        onCoolDescriptionChange: ->
+          @hookFired = true
+      })
+    
+    describe "With no data", ->
+      beforeEach ->
+        @todo = new @Todo(( "cool-description": "bar" ))
+      
+      it "Fires the hook", ->
+        expect( @todo.hookFired ).toBe( undefined )
+        @todo.set( "cool-description", "bizzle" )
+        expect( @todo.hookFired ).toBe( true )
+      
+      it "Doesn't fire hook erroneously", ->
+        @todo.set( "cool-description", "bar" )
+        expect( @todo.hookFired ).toBe( undefined )
