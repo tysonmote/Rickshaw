@@ -25,21 +25,19 @@ window.Rickshaw.Persistence._Base = new Class({
     this.fireEvent( "afterFetch", this )
     callback( this ) if callback
   
-  save: (callback) ->
+  save: (callback, fail_callback) ->
     if typeof @id in ["number", "string"]
-      this.update()
+      this.update( callback, fail_callback )
     else
-      this.create()
+      this.create( callback, fail_callback )
   
-  create: (callback) ->
-    @store.create( this, this._updated.bind( this ) )
+  create: (callback, fail_callback) ->
+    @store.create( this, this._updated.bind( this, [this.data, callback] ), fail_callback )
   
-  update: (callback) ->
+  update: (callback, fail_callback) ->
     return unless this.isDirty()
     this.fireEvent( "beforePersist", this )
-    @store.update( this, (data) =>
-      this._updated( data, callback )
-    )
+    @store.update( this, this._updated.bind(this, [this.data, callback] ), fail_callback )
   
   _updated: (data, callback) ->
     changed = !Object._equal( data, @_previousData )
@@ -49,11 +47,9 @@ window.Rickshaw.Persistence._Base = new Class({
     this.fireEvent( "afterPersist", this )
     callback( this ) if callback
   
-  delete: (callback) ->
+  delete: (callback, fail_callback) ->
     this.fireEvent( "beforeDelete", this )
-    @store.delete( this, =>
-      this._deleted( callback ) if callback
-    )
+    @store.delete( this, this._deleted.bind(this, [callback] ), fail_callback )
   
   _deleted: (callback) ->
     this._setNewData( {} )
@@ -65,6 +61,9 @@ window.Rickshaw.Persistence._Base = new Class({
     @_changedData = {}
     @_previousData = Object.clone( @data )
 
+  _persistFail: (callback, xhr)->
+    this.fireEvent( "persistFail", this )
+    callback( this, xhr ) if callback
 })
 
 # REST-ful JSON persistence.
@@ -77,34 +76,34 @@ window.Rickshaw.Persistence.JSON = new Class({
     paramName: "rickshaw"
     url: "/rickshaws"
     
-    create: (model, callback) ->
+    create: (model, callback, fail_callback) ->
       (new Request.JSON({
         url: this._buildUrl( "create", model )
         data: this._createData( model )
-        onSuccess: callback
-        onFailure: -> #TODO
+        onSuccess: this._successCallbackWrapper( callback )
+        onFailure: this._failCallbackWrapper( model, fail_callback )
       })).post()
     
-    read: (model, callback) ->
+    read: (model, callback, fail_callback) ->
       (new Request.JSON({
         url: this._buildUrl( "read", model )
-        onSuccess: callback
-        onFailure: -> #TODO
+        onSuccess: this._successCallbackWrapper( callback )
+        onFailure: -> this._failCallbackWrapper( model, fail_callback )
       })).get()
     
-    update: (model, callback) ->
+    update: (model, callback, fail_callback) ->
       (new Request.JSON({
         url: this._buildUrl( "update", model )
         data: this._updateData( model )
-        onSuccess: callback
-        onFailure: -> #TODO
+        onSuccess: this._successCallbackWrapper( callback )
+        onFailure: -> this._failCallbackWrapper( model, fail_callback )
       })).put()
     
-    delete: (model, callback) ->
+    delete: (model, callback, fail_callback) ->
       (new Request.JSON({
         url: this._buildUrl( "delete", model )
-        onSuccess: callback
-        onFailure: -> #TODO
+        onSuccess: this._successCallbackWrapper( callback )
+        onFailure: -> this._failCallbackWrapper( model, fail_callback )
       })).delete()
     
     _buildUrl: (method, model) ->
@@ -124,4 +123,13 @@ window.Rickshaw.Persistence.JSON = new Class({
       newData = {}
       newData[@paramName] = data
       newData
+
+    _successCallbackWrapper: (callback) ->
+      ( json, text ) ->
+        callback()
+
+    _failCallbackWrapper: (model, callback) ->
+      ( xhr ) ->
+        model._persistFail(callback, xhr)
+       
 })
