@@ -1,7 +1,7 @@
 Rickshaw
 ========
 
-Rickshaw is a MooTools-based client-side MVC framework.
+Rickshaw is an in-progress MooTools-based client-side MVC framework.
 
 Examples
 --------
@@ -59,3 +59,9 @@ Examples
           this.model.delete();
         }
     });
+
+Contributors
+------------
+
+* Tyson Tate
+* Casey Speer
