@@ -72,7 +72,7 @@ window.Rickshaw.Controllers.Single = new Class({
     templateData = @model.data
     template = Rickshaw.Templates[@templateName]
     if template
-      return Mustache.to_html( template, templateData )
+      return template( templateData )
     else
       throw "Template \"#{@templateName}\" not found."
   
@@ -131,7 +131,7 @@ window.Rickshaw.Controllers.Summary = new Class({
     templateData = this.summarize( @models )
     template = Rickshaw.Templates[@templateName]
     if template
-      return Mustache.to_html( template, templateData )
+      return template( templateData )
     else
       throw "Template \"#{@templateName}\" not found."
   

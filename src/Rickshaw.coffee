@@ -20,8 +20,9 @@ window.Rickshaw = {
     $$( "script[id^='#{@templatePrefix}']" ).each( (el) ->
       if parsedId = idRegex.exec( el.get( "id" ) )
         name = parsedId.getLast()
-        Rickshaw.Templates[name] = el.get( "html" )
+        Rickshaw.Templates[name] = Handlebars.compile( el.get( "html" ) )
     )
+    Rickshaw.Templates
 }
 
 document.addEvent( "domready", Rickshaw.refreshTemplates )
