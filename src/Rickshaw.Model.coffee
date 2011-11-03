@@ -5,6 +5,9 @@ window.Rickshaw.Model = new Class({
   
   Implements: [Events]
   
+  # Class Settings
+  # --------------
+  
   # Unique identifier property key for Model instances in its data.
   idProperty: "id"
   
@@ -13,6 +16,11 @@ window.Rickshaw.Model = new Class({
   
   # Custom property setters keyed by property name.
   setters: {}
+  
+  # Instance Properties
+  # -------------------
+  
+  id: null
   
   # Setup
   # -----
