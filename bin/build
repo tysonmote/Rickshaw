@@ -18,6 +18,6 @@ coffee --print --compile \
   > ./build/rickshaw.js
 
 # Full version with dependencies
-cat ./build/rickshaw.js ./vendor/mustache.js > ./build/rickshaw.full.js
+cat ./build/rickshaw.js ./vendor/handlebars.1.0.0.beta.3.js > ./build/rickshaw.full.js
 
 echo "Rickshaw build successful!"
