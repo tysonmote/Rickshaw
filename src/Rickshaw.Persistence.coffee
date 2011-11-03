@@ -122,13 +122,40 @@ window.Rickshaw.Persistence.JSON = new Class({
       newData = {}
       newData[@paramName] = data
       newData
+      
+})
 
-    _successCallbackWrapper: (callback) ->
-      ( json, text ) ->
+# HTML5 localStorage persistance
+window.Rickshaw.Persistence.LocalStorage = new Class({
+  
+  Extends: Rickshaw.Persistence._Base
+  
+  # TODO: These methods need to be bound to the model instance.
+  store:
+    prefix: "rickshaw"
+    
+    create: (model, callback, failure_callback) ->
+      this.update( model, callback, failure_callback )
+    
+    read: (model, callback, failure_callback) ->
+      try
+        callback( JSON.decode( localStorage[this._key( model )] ) )
+      catch error
+        failure_callback() if failure_callback
+    
+    update: (model, callback, failure_callback) ->
+      try
+        localStorage[this._key( model )] = JSON.encode( model.data )
         callback()
-
-    _failCallbackWrapper: (model, callback) ->
-      ( xhr ) ->
-        model._persistFail(callback, xhr)
-       
+      catch error
+        failure_callback() if failure_callback
+    
+    delete: (model, callback, failure_callback) ->
+      try
+        localStorage.removeItem( this._key( model ) )
+        callback()
+      catch error
+        failure_callback() if failure_callback
+    
+    _key: (model) -> "#{@prefix}:#{model.id}"
 })
