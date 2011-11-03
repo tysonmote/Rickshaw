@@ -4,10 +4,13 @@ describe "Rickshaw", ->
       setupFixture( "templates/simple" )
       Rickshaw.refreshTemplates()
       
-      expect( Rickshaw.Templates ).toEqual({
-        Message: "\n  <span>{{message}}</span>\n",
-        Comment_Thing: "\n  {{comment}}\n",
-      })
+      expect( Rickshaw.Templates.Message({
+        message: "a"
+      })).toEqual("\n  <span>a</span>\n")
+      
+      expect( Rickshaw.Templates.Comment_Thing({
+        comment: "a"
+      })).toEqual("\n  a\n")
       
     it "Allows overiding the prefix and regex", ->
       Rickshaw.refreshTemplates()
@@ -17,10 +20,13 @@ describe "Rickshaw", ->
       Rickshaw.templatePrefix = "Rad"
       Rickshaw.refreshTemplates()
       
-      expect( Rickshaw.Templates ).toEqual({
-        Other: "{{foo}}",
-        Rickshaw: "{{foo}}",
-      })
+      expect( Rickshaw.Templates.Other({
+        foo: "a"
+      })).toEqual("a")
+      
+      expect( Rickshaw.Templates.Rickshaw({
+        foo: "a"
+      })).toEqual("a")
     
     it "Clears out templates on refresh", ->
       Rickshaw.refreshTemplates()
