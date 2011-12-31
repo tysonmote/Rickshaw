@@ -1,22 +1,22 @@
 window.Rickshaw = {
-  
+
   version: "0.0.0"
-  
+
   Templates: {}
   Controllers: {}
   Persistence: {}
-  
+
   templatePrefix: "Rickshaw"
   templateRegex: /^Rickshaw-(\w+)-template$/
-  
+
   # Reload all templates from "Rickshaw-*-template" <script> elements. This is
   # called on DOMReady, so you only need to call this if you're adding templates
   # after DOMReady.
   refreshTemplates: (idRegex) ->
     idRegex ||= @templateRegex
-    
+
     Rickshaw.Templates = {}
-    
+
     $$( "script[id^='#{@templatePrefix}']" ).each( (el) ->
       if parsedId = idRegex.exec( el.get( "id" ) )
         name = parsedId.getLast()
