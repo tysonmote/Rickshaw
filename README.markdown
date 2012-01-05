@@ -1,7 +1,7 @@
 Rickshaw
 ========
 
-Rickshaw is an in-progress MooTools-based client-side MVC framework.
+A small learning exercise in implementing a client-side MVC framework using some of the idioms of MooTools.
 
 Examples
 --------
@@ -11,7 +11,7 @@ Examples
     var Message = new Class({
       Extends: Rickshaw.Model,
       Implements: Rickshaw.Persistence.RestfulJSON,
-      
+    
       store: {
         url: "/messages/{id}"
       }
@@ -21,13 +21,13 @@ Examples
 
     var User = new Class({
       Extends: Rickshaw.Model,
-      
+
       getters: {
         name: function() {
           return this.data.firstName + " " + this.data.lastName;
         }
       },
-      
+    
       setters: {
         name: function(value) {
           var names = value.split(" ");
@@ -52,7 +52,7 @@ Examples
 
     var MessageController = new Class({
       Extends: Rickshaw.Controller.Single,
-      
+    
       elementEvents: {
         ".delete": function(e) {
           e.stop();
