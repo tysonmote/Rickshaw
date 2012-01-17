@@ -1,9 +1,15 @@
+# Rickshaw
+# ========
+# 
+# Controllers have or have many Model instances. Views render HTML for a
+# Controller.
+#
+
 window.Rickshaw = {
 
-  version: "0.0.0"
+  version: "0.0.0a"
 
   Templates: {}
-  Controllers: {}
   Persistence: {}
 
   templatePrefix: "Rickshaw"
@@ -15,7 +21,7 @@ window.Rickshaw = {
   refreshTemplates: (idRegex) ->
     idRegex ||= @templateRegex
 
-    Rickshaw.Templates = {}
+    Rickshaw.Templates ||= {}
 
     $$( "script[id^='#{@templatePrefix}']" ).each( (el) ->
       if parsedId = idRegex.exec( el.get( "id" ) )
@@ -23,9 +29,40 @@ window.Rickshaw = {
         Rickshaw.Templates[name] = Handlebars.compile( el.get( "html" ) )
     )
     Rickshaw.Templates
+
+  # Returns random "short uuid" of the form: "rickshaw-xxxx-xxxx-xxxx-xxxx"
+  uuid: ->
+    str = ["rickshaw-"]
+    i = 0
+    while i++ < 17
+      str.push if i != 9 then Math.round(Math.random() * 15).toString(16) else "-"
+    str.join( "" )
+
+  register: (object) ->
+    object._uuid = Rickshaw.uuid()
+    Rickshaw[object._uuid] = object
 }
 
 document.addEvent( "domready", Rickshaw.refreshTemplates )
+
+# Rickshaw.Utils
+# ==============
+
+Rickshaw.Utils = {
+  equal: (a, b) ->
+    aType = typeOf( a )
+    if aType == "array"
+      Array._equal( a, b )
+    else if aType == "object"
+      Object._equal( a, b )
+    else
+      a == b
+
+  subclassConstructor: (baseClass) ->
+    return( (params) ->
+      new Class( Object.merge( { Extends: baseClass }, params ) )
+    )
+}
 
 # MooTools Extensions
 # ===================
@@ -34,7 +71,7 @@ Array.extend({
   # Returns true if the two arrays have the same values in the same order.
   # Handles nested arrays and objects.
   _equal: (arrayA, arrayB) ->
-    return false unless typeOf( arrayA ) == "array" && typeOf( arrayB ) == "array"
+    return false unless "array" == typeOf( arrayA ) == typeOf( arrayB )
     return false unless arrayA.length == arrayB.length
     return arrayA.every( (value, index) ->
       switch typeof value
@@ -42,13 +79,23 @@ Array.extend({
         when "array" then Array._equal( value, arrayB[index] )
         else value == arrayB[index]
     )
+
+  _compare: (a, b) =>
+    return -1 if a < b
+    return 0 if a == b
+    return 1
+})
+
+Array.implement({
+  mappedProperty: (property) ->
+    this.map( (item) -> item[property] )
 })
 
 Object.extend({
   # Returns true if the two objects have the same keys and values. Handles
   # nested arrays and objects.
   _equal: (objectA, objectB) ->
-    return false unless typeof objectA == "object" && typeof objectB == "object"
+    return false unless "object" == typeOf( objectA )== typeOf( objectB )
     return false unless Object.keys( objectA ).sort().join( "" ) == Object.keys( objectB ).sort().join( "" )
     return Object.every( objectA, (value, key) ->
       switch typeof value
@@ -58,15 +105,26 @@ Object.extend({
     )
 })
 
+String.implement({
+  # Stronger camelCase. Converts "this is-the_remix" to "thisIsTheRemix"
+  # instead of "this isThe_remix", like `camelCase()` would.
+  forceCamelCase: ->
+    String( this ).replace( /[-_\s]\D/g, (match) ->
+      match.charAt( 1 ).toUpperCase()
+    )
+})
+
 # Binds
 # =====
+#
+# From MooTools More
 
 Class.Mutators.Binds = (binds) ->
   this.implement( "initialize", -> ) if !@prototype.initialize
   Array.from( binds ).concat( @prototype.Binds || []);
 
 Class.Mutators.initialize = (initialize) ->
-  return ->
+  return( ->
     Array.from( @Binds ).each(
       ((name) ->
         if original = this[name]
@@ -75,3 +133,4 @@ Class.Mutators.initialize = (initialize) ->
       this
     )
     return initialize.apply( this, arguments )
+  )

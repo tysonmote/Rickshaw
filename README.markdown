@@ -1,12 +1,14 @@
 Rickshaw
 ========
 
-A small learning exercise in implementing a client-side MVC framework using some of the idioms of MooTools.
+Powerful client-side MVC framework based on MooTools and Handlebars.
 
 Examples
 --------
 
 ### RESTful persistence ###
+
+(Note: this is currently broken)
 
     var Message = new Class({
       Extends: Rickshaw.Model,
@@ -19,43 +21,54 @@ Examples
 
 ### Custom model property accessors ###
 
-    var User = new Class({
-      Extends: Rickshaw.Model,
-
-      getters: {
-        name: function() {
-          return this.data.firstName + " " + this.data.lastName;
-        }
+    var User = new Rickshaw.Model({
+      getName: function() {
+        return this.data.firstName + " " + this.data.lastName;
       },
-    
-      setters: {
-        name: function(value) {
-          var names = value.split(" ");
-          this.data.firstName = names[0];
-          this.data.lastName = names[1];
-        }
+
+      setName: function(value) {
+        var names = value.split(" ");
+        this.set("firstName", names[0]);
+        this.set("lastName", names[1]);
       }
-    });
+    }
 
 ### Collections ###
 
-    var Messages = new Class({
-      Extends: Rickshaw.Collection,
+Collections are Array subclasses that have lots of additional event-firing
+hotness.
+
+    var Messages = new Rickshaw.Collection({
       modelClass: Message
     });
     
-    var myMessages = new Messages([msgA, msgB, msgC]);
-    myMessages.append(msgD);
+    var myMessages = new Messages(msgA, msgB, msgC);
+    myMessages.push(msgD);
+    # onAdd event is fired.
     myMessages.set({ state: "read", flagged: false });
+    # all messages are updated with the above properties.
 
 ### Controllers ###
 
-    var MessageController = new Class({
-      Extends: Rickshaw.Controller.Single,
-    
-      elementEvents: {
+Template:
+
+    <div class="message">Dear {{name}}, {{content}}</div>
+    {{ tag "button.delete[text='Delete']" }}
+    {{ subController replyForm "div.reply-form" }}
+
+Controller:
+
+    var MessageController = new Rickshaw.Controller({
+      templateName: "message",
+
+      initialize: function(message) {
+        this.replyForm = new MessageReplyController(message);
+        this.parent(message);
+      },
+
+      events: {
         ".delete": function(e) {
-          e.stop();
+          e.preventDefault();
           this.model.delete();
         }
     });
@@ -64,4 +77,4 @@ Contributors
 ------------
 
 * Tyson Tate
-* Casey Speer
+* Casey Speer - Early contributions to the persistance layer.

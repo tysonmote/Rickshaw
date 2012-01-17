@@ -1,169 +1,281 @@
-# Rickshaw.Controllers
-# ====================
+# Rickshaw.Controller
+# ===========================
+#
+# Events
+# ------
+#
+#   * onBeforeRender(controller) - Fired before the controller is rendered.
+#   * onAfterRender(controller) - Fired after the controller is rendered.
+#
+# Examples
+# --------
+#
+#     # Template:
+#     <p>Hello, {{ fullName }}!</p>
+#
+#     # Controller
+#     UserGreetingController = new Rickshaw.Controller({
+#       templateName: "user/greeting"
+#       fullName: -> "#{@model.firstName} #{@model.firstName}"
+#     })
+#     controller = new UserRowController( user )
+#     controller.renderTo( $( "user-greeting" ) )
+#
+# Sub-controllers:
+#
+#     # Template:
+#     <p>Hello, {{ firstName }}! {{ subController logoutFormController }}</p>
+#
+#     # Controller
+#     UserGreetingController = new Rickshaw.Controller({
+#       initialize: (user) ->
+#         @logoutFormController = new LogoutFormController( user )
+#         this.parent( user )
+#       templateName: "user/greeting"
+#     })
+#     controller = new UserRowController( user )
+#     controller.renderTo( $( "user-greeting" ) )
 
-window.Rickshaw.Controllers.Single = new Class({
+Rickshaw._Controller = new Class({
 
   Implements: [Events]
 
   # Options
   # -------
 
-  # Associated `Rickshaw.Model` subclass. (Required.)
-  modelClass: Rickshaw.Model
+  # Name of template used to render this controller. (Required)
+  templateName: ""
 
-  # Name of template used to render this controller. (Required if you want to,
-  # you know, render anything.)
-  templateName: "Single"
-
-  # Element attribute which contains the id of the model. (Optional.)
-  idAttribute: "data-id"
-
-  # Auto-attached element events. Keyed by element selector. (Optional.)
-  elementEvents: {}
-
-  # If true, the rendered element is destroyed when the model is destroyed.
-  unrenderOnDelete: true
+  # Auto-attached element events. Keyed by element selector. (Optional)
+  events: {}
 
   # Properties
   # ----------
 
-  # Attached model instance. This is set on controller instantiation.
+  # Attached model instance. This is set when this controller is created.
   model: null
 
-  # Render state of this controller.
-  rendered: false
+  # Container elements that this controller renders to.
+  elements: null
+
+  # If this is a sub-controller, this is the parent controller.
+  parentController: null
 
   # Params:
   #
-  #   * `element` - DOM element that this controller's HTML is rendered to.
-  #   * `data` - Model instance or model data of associated model.
-  initialize: (@element, data = {}) ->
-    @element.store( "Rickshaw.Controller", this )
-
-    @model = this._modelFrom( data )
-
-    this._attachModel()
+  #   * `model` (Rickshaw.Model) - Associated model.
+  #   * `element` (Element, Elements, String, null) - DOM element, elements,
+  #     or element id that this controller's rendered template HTML is rendered
+  #     to. If this is null, it can be set to an Element or Elements later (as
+  #     in the case of subController).
+  initialize: (model=null, element=null) ->
+    Rickshaw.register( this )
+    @elements = $$()
+    this.setModel( model, false ) if model
+    this.renderTo( element ) if element
     return this
 
-  # Hook up the model's events.
-  _attachModel: ->
-    @model.addEvent( "dataChange", this._modelDataChanged.bind( this ) )
-    @model.addEvent( "afterDelete", this._modelDeleted.bind( this ) )
+  # Sets this controller's associated model instance and renders to all
+  # elements.
+  setModel: (model, render=true) ->
+    this._detachModelEvents() if @model
+    @model = model
+    this._attachModelEvents()
+    this.render() if render
 
+  # Rendering
+  # ---------
+
+  # Setup a render destination element.
+  renderTo: (element) ->
+    @elements.push( $( element ) )
+    this.render()
+
+  # TODO: Render only what needs to be re-rendered.
   render: ->
-    throw "No Element to render to!" unless @element
+    return unless @elements.length > 0
     this.fireEvent( "beforeRender", this )
-    @element.set( "html", this._toHtml() )
+    @elements.set( "html", this._toHtml() )
+    this._renderSubControllers()
     this._attachEvents()
-    @rendered = true
     this.fireEvent( "afterRender", this )
 
-  _attachEvents: ->
-    @_boundElementEvents ||= {}
-    Object.each( @elementEvents, (events, selector) =>
-      # TODO: Wtf is up with the __proto__ BS?
-      @_boundElementEvents[selector] ||= Object.map( events.__proto__, (fn, eventName) =>
-        return fn.bind( this )
+  _renderSubControllers: ->
+    self = this
+    @elements.each( (container) ->
+      container.getElements( ".rickshaw-subcontroller.rickshaw-unrendered" ).each( (el) ->
+        controller = Rickshaw[el.get( "data-uuid" )]
+        controller.parentController = self
+        controller.renderTo( el )
+        el.removeClass( "rickshaw-unrendered" )
       )
-      @element.getElements( selector ).addEvents( @_boundElementEvents[selector] )
     )
 
   _toHtml: ->
-    templateData = @model.data
-    template = Rickshaw.Templates[@templateName]
-    if template
-      return template( templateData )
+    if template = Rickshaw.Templates[@templateName]
+      return template( this )
     else
       throw "Template \"#{@templateName}\" not found."
 
-  # =========
-  # = Hooks =
-  # =========
+  # Events
+  # ------
 
-  _modelDataChanged: ->
-    this.render()
+  _attachEvents: ->
+    @_boundEvents ||= {}
+    Object.each( @events, (events, selector) =>
+      # TODO: Wtf is up with the __proto__ BS?
+      @_boundEvents[selector] ||= Object.map( events.__proto__, (fn, eventName) =>
+        return fn.bind( this )
+      )
+      @elements.getElements( selector ).addEvents( @_boundEvents[selector] )
+    )
 
-  _modelDeleted: ->
-    if @unrenderOnDelete
-      @element.set( "html", "" )
-      @rendered = false
+  # Hook up the model's events.
+  _attachModelEvents: ->
+    @model.addEvent( "dataChange", this._modelDataChanged )
+    @model.addEvent( "afterDelete", this._modelDeleted )
 
-  # Misc.
+  _detachModelEvents: ->
+    @model.removeEvent( "dataChange", this._modelDataChanged )
+    @model.removeEvent( "afterDelete", this._modelDeleted )
+
+  # Hooks
   # -----
 
-  _modelFrom: (data) ->
-    if typeOf( data ) == "object" && instanceOf( data, @modelClass )
-      return data
-    else
-      return new @modelClass( data )
+  # bound
+  # TODO: only re-render the parts that need re-rendering
+  _modelDataChanged: (model, changedProperties) ->
+    this.render()
+
+  # bound
+  # TODO: This should be non-sucky.
+  _modelDeleted: ->
+    @elements.destroy()
+
+  Binds: ["_modelDataChanged", "_modelDeleted"]
 
 })
 
-window.Rickshaw.Controllers.Summary = new Class({
+Rickshaw.Controller = Rickshaw.Utils.subclassConstructor( Rickshaw._Controller )
+
+# Rickshaw.ListController
+# -----------------------
+
+Rickshaw._ListController = new Class({
 
   Implements: [Events]
 
+  # Options
+  # -------
+
+  # Name of template used to render this controller. (Required)
   templateName: ""
-  elementEvents: {}
 
-  element: null
-  models: []
+  # Auto-attached element events. Keyed by element selector. (Optional)
+  events: {}
 
-  initialize: (@element, @models ) ->
-    @rendered = false
-    @models.each( (model) => this._attachModel( model ) )
+  # Properties
+  # ----------
+
+  # Attached collection instance. This is set when this controller is created.
+  collection: null
+
+  # Container elements that this controller renders to.
+  elements: null
+
+  # If this is a sub-controller, this is the parent controller.
+  parentController: null
+
+  # Params:
+  #
+  #   * `collection` (Rickshaw.Collection) - Associated Collection.
+  #   * `element` (Element, Elements, String, null) - DOM element, elements,
+  #     or element id that this controller's rendered template HTML is rendered
+  #     to. If this is null, it can be set to an Element or Elements later (as
+  #     in the case of subController).
+  initialize: (collection=null, element=null) ->
+    Rickshaw.register( this )
+    @elements = $$()
+    this.setCollection( collection, false ) if model
+    this.renderTo( element ) if element
     return this
 
-  # Should return an object that gets passed to Mustache with the template.
-  summarize: (models) ->
-    throw "`summarize()` is not implemented by this Rickshaw.Controllers.Summary subclass."
+  # Sets this controller's associated model instance and renders to all
+  # elements.
+  setCollection: (collection, render=true) ->
+    this._detachModelEvents() if @model
+    @model = model
+    this._attachModelEvents()
+    this.render() if render
 
+  # Rendering
+  # ---------
+
+  # Setup a render destination element.
+  renderTo: (element) ->
+    @elements.push( $( element ) )
+    this.render()
+
+  # TODO: Render only what needs to be re-rendered.
   render: ->
-    return false unless @element
+    return unless @elements.length > 0
     this.fireEvent( "beforeRender", this )
-    @element.set( "html", this._toHtml() )
+    @elements.set( "html", this._toHtml() )
+    this._renderSubControllers()
     this._attachEvents()
-    @rendered = true
     this.fireEvent( "afterRender", this )
 
+  _renderSubControllers: ->
+    self = this
+    @elements.each( (container) ->
+      container.getElements( ".rickshaw-subcontroller.rickshaw-unrendered" ).each( (el) ->
+        controller = Rickshaw[el.get( "data-uuid" )]
+        controller.parentController = self
+        controller.renderTo( el )
+        el.removeClass( "rickshaw-unrendered" )
+      )
+    )
+
   _toHtml: ->
-    # Todo: Someday we parallelize this with WebWorkers. Har har.
-    templateData = this.summarize( @models )
-    template = Rickshaw.Templates[@templateName]
-    if template
-      return template( templateData )
+    if template = Rickshaw.Templates[@templateName]
+      return template( this )
     else
       throw "Template \"#{@templateName}\" not found."
 
-  _attachModel: (model) ->
-    model.addEvent( "dataChange", this._modelDataChanged )
-    model.addEvent( "afterDelete", this._modelDeleted )
+  # Events
+  # ------
 
-  _detachModel: (model) ->
-    model.removeEvent( "dataChange", this._modelDataChanged )
-    model.removeEvent( "afterDelete", this._modelDeleted )
-
-  # This shit needs to be DRYed up, for reals.
   _attachEvents: ->
-    @_boundElementEvents ||= {}
-    Object.each( @elementEvents, (events, selector) =>
+    @_boundEvents ||= {}
+    Object.each( @events, (events, selector) =>
       # TODO: Wtf is up with the __proto__ BS?
-      @_boundElementEvents[selector] ||= Object.map( events.__proto__, (fn, eventName) =>
+      @_boundEvents[selector] ||= Object.map( events.__proto__, (fn, eventName) =>
         return fn.bind( this )
       )
-      @element.getElements( selector ).addEvents( @_boundElementEvents[selector] )
+      @elements.getElements( selector ).addEvents( @_boundEvents[selector] )
     )
 
-  # =========
-  # = Hooks =
-  # =========
+  # Hook up the model's events.
+  _attachModelEvents: ->
+    @model.addEvent( "dataChange", this._modelDataChanged )
+    @model.addEvent( "afterDelete", this._modelDeleted )
 
-  _modelDataChanged: (model) ->
-    this.render() if @rendered
+  _detachModelEvents: ->
+    @model.removeEvent( "dataChange", this._modelDataChanged )
+    @model.removeEvent( "afterDelete", this._modelDeleted )
 
-  _modelDeleted: (model) ->
-    @models.erase( model )
-    this.render() if @rendered
+  # Hooks
+  # -----
+
+  # bound
+  # TODO: only re-render the parts that need re-rendering
+  _modelDataChanged: ->
+    this.render()
+
+  # bound
+  # TODO: This should be non-sucky.
+  _modelDeleted: ->
+    @elements.destroy()
 
   Binds: ["_modelDataChanged", "_modelDeleted"]
 
