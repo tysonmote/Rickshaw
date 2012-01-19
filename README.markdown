@@ -1,7 +1,36 @@
 Rickshaw
 ========
 
-Powerful client-side MVC framework based on MooTools and Handlebars.
+Powerful client-side MVC framework based on MooTools for powerful OOP / MVC
+and Handlebars for awesome templating.
+
+Specs
+-----
+
+If you want to run the specs headlessly (warning: qt is pretty hefty):
+
+    brew update
+    brew install qt
+    bundle install
+    bundle exec evergreen run
+
+Or if you don't want / need to run them headlessly:
+
+    rm .evergreen
+    bundle install --without headless
+    bundle exec evergreen serve
+
+(`.evergreen` simply has the config for headless specs. Removing that file will tell `evergreen`
+to default to Selenium.)
+
+To do
+-----
+
+(Roughly in order of importance)
+
+* Get a spec suite up and running
+* Make ListController rendering more efficient
+* Add the persistance framework back
 
 Examples
 --------

@@ -48,6 +48,9 @@ window.Rickshaw = {
     object._uuid = Rickshaw.uuid()
     Rickshaw._objects[object._uuid] = object
 
+  get: (uuid) ->
+    @_objects[uuid]
+
   # Destroy the object and remove the _objects reference to it.
   # TODO: Do we need this?
   DELETE: (object) ->

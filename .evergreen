@@ -1,0 +1,6 @@
+# To run non-headlessly using Selenium, comment out this entire file.
+
+require 'capybara-webkit'
+Evergreen.configure do |config|
+  config.driver = :webkit
+end
