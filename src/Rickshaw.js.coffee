@@ -1,156 +1,147 @@
-# Rickshaw.Collection
-# ===================
+# Rickshaw
+# ========
+# 
+# Controllers have or have many Model instances. Views render HTML for a
+# Controller.
 #
-# Array-like collection of Model instances.
-#
-# Events
-# ------
-#
-#   * onAdd( collection ) - Fired when elements are added.
-#   * onRemove( collection ) - Fired when elements are removed.
-#   * onSortChange( collection ) - Fired whenever the models are re-ordered.
-#   * onChange( collection, instance, [properties] ) - Fired when any of the
-#     model instances in this Collection change.
-Rickshaw._Collection = new Class({
+window.Rickshaw = {
 
-  Extends: Array
-  Implements: [Events]
+  version: "0.0.1"
 
-  # Options
-  # -------
+  Templates: {}
+  Persistence: {}
 
-  # Default model class used when data (rather than model instances) are
-  # given. If this is a function, it'll be passed the model data and it
-  # should return the correct model class for the data.
-  modelClass: Rickshaw.Model
+  # Contains every single Rickshaw object, keyed by uuid. This means we keep
+  # at least one reference to every single object, regardless if anything else
+  # points to it. HelloooOOOoo memory leaks! TODO: Fix.
+  _objects: {}
 
-  # Properties
-  # ----------
+  # Auto-loaded templates
+  # ---------------------
 
-  models: []
+  templatePrefix: "Rickshaw"
+  templateRegex: /^Rickshaw-(\w+)-template$/
 
-  # Setup
-  # -----
-
-  initialize: ->
-    Rickshaw.register( this )
-    this._add( "push", arguments ) if arguments.length > 0
-    return this
-
-  uuids: -> @models.mappedProperty( "uuid" )
-
-  # Adding
-  # ------
-
-  push:    -> this._add( "push", arguments )
-  unshift: -> this._add( "unshift", arguments )
-  include: -> this._add( "include", arguments )
-  combine: -> this._add( "combine", arguments )
-  append:  -> this._add( "append", arguments )
-
-  # Run the given Array method with `args`, firing the "onAdd" event if
-  # needed.
-  _add: (method, args) ->
-    startingLength = @length
-
-    args = this._ensureModels( Array.from( args ) )
-    args.flatten().each( (model) =>
-      this._attachModel( model ) unless this.contains( model )
+  # Reload all templates from <script id="Rickshaw-*-template"> elements. This
+  # is called on DOMReady, so you only need to call this if you're adding
+  # templates after DOMReady.
+  refreshTemplates: (idRegex) ->
+    idRegex ||= @templateRegex
+    Rickshaw.Templates ||= {}
+    $$( "script[id^='#{@templatePrefix}']" ).each( (el) ->
+      if parsedId = idRegex.exec( el.get( "id" ) )
+        name = parsedId.getLast()
+        Rickshaw.Templates[name] = Handlebars.compile( el.get( "html" ) )
     )
+    Rickshaw.Templates
 
-    result = Array.prototype[method].apply( this, args )
+  # Returns random "short uuid" of the form: "rickshaw-xxxx-xxxx-xxxx-xxxx"
+  # Array.join() is faster than string concatenation here.
+  uuid: ->
+    str = ["rickshaw-"]
+    i = 0
+    while i++ < 17
+      str.push if i != 9 then Math.round(Math.random() * 15).toString(16) else "-"
+    str.join( "" )
 
-    this.fireEvent( "add", [this] ) if startingLength != @length
-    return result
+  register: (object) ->
+    object._uuid = Rickshaw.uuid()
+    Rickshaw._objects[object._uuid] = object
 
-  # Hook up the model's events to this Collection's hooks.
-  _attachModel: (model) ->
-    model.addEvent( "dataChange", this._modelDataChanged )
-    model.addEvent( "afterDelete", this._modelDeleted )
+  # Destroy the object and remove the _objects reference to it.
+  # TODO: Do we need this?
+  DELETE: (object) ->
+    delete Rickshaw._objects[object._uuid]
+}
 
-  # Removing
-  # --------
+document.addEvent( "domready", Rickshaw.refreshTemplates )
 
-  # Note: splice is not currently supported.
+# Rickshaw.Utils
+# ==============
 
-  pop:     -> this._remove( "pop" )
-  unshift: -> this._remove( "unshift" )
-  erase:   -> this._remove( "erase", arguments )
-  empty:   -> this._remove( "empty" )
-
-  # Run the given Array method with `args` and fire the `onRemove` event if
-  # needed.
-  _remove: (method, args=[]) ->
-    startingLength = @length
-
-    if method == "erase"
-      this._detachModel( args[0] )
-    else if method == "empty"
-      this.each( this._detachModel )
-
-    result = Array.prototype[method].apply( this, args )
-
-    if method in ["pop", "unshift"]
-      this._detachModel( result ) if result && !this.contains( result )
-
-    this.fireEvent( "remove", [this] ) if startingLength != @length
-    return result
-
-  _detachModel: (model) ->
-    model.removeEvent( "dataChange", this._modelDataChanged )
-    model.removeEvent( "afterDelete", this._modelDeleted )
-
-  # Sorting
-  # -------
-
-  sort: (fn) ->
-    startOrder = this.uuids()
-    this.parent( fn )
-    endOrder = this.uuids()
-    this.fireEvent( "sortChange", [this] ) unless Array._equal( startOrder, endOrder )
-
-  reverse: ->
-    return this if @length < 2
-    Array.prototype.reverse.apply( this )
-    this.fireEvent( "sortChange", [this] )
-
-  # =========
-  # = Hooks =
-  # =========
-
-  # Bound to `this`.
-  _modelDataChanged: (model, properties) ->
-    this.fireEvent( "change", [this, model, properties] )
-
-  # Bound to `this`.
-  _modelDeleted: (model) ->
-    model.removeEvent()
-    this.remove( model )
-
-  # =========
-  # = Misc. =
-  # =========
-
-  _ensureModels: (array) ->
-    array.map( (item) =>
-      if typeOf( item ) == "array"
-        this._ensureModels( item )
-      else
-        this._modelFrom( item )
-    )
-
-  # Model can be a Model, a data hash, or an id (string / number). Returns
-  # an instance of the model.
-  _modelFrom: (data) ->
-    if typeOf( data ) == "class"
-      return data
+Rickshaw.Utils = {
+  equal: (a, b) ->
+    aType = typeOf( a )
+    if aType == "array"
+      Array._equal( a, b )
+    else if aType == "object"
+      Object._equal( a, b )
     else
-      if typeOf( @modelClass ) == "function"
-        return new @modelClass( data )( data )
-      else
-        return new @modelClass( data )
+      a == b
 
-  Binds: ["_modelDataChanged", "_modelDeleted", "_attachModel", "_detachModel"]
+  subclassConstructor: (baseClass) ->
+    return( (params) ->
+      new Class( Object.merge( { Extends: baseClass }, params ) )
+    )
+}
+
+# MooTools Extensions
+# ===================
+
+Array.extend({
+  # Returns true if the two arrays have the same values in the same order.
+  # Handles nested arrays and objects.
+  _equal: (arrayA, arrayB) ->
+    return false unless "array" == typeOf( arrayA ) == typeOf( arrayB )
+    return false unless arrayA.length == arrayB.length
+    return arrayA.every( (value, index) ->
+      switch typeof value
+        when "object" then Object._equal( value, arrayB[index] )
+        when "array" then Array._equal( value, arrayB[index] )
+        else value == arrayB[index]
+    )
+
+  _compare: (a, b) =>
+    return -1 if a < b
+    return 0 if a == b
+    return 1
 })
 
-Rickshaw.Collection = Rickshaw.Utils.subclassConstructor( Rickshaw._Collection )
+Array.implement({
+  mapProperty: (property) ->
+    this.map( (item) -> item[property] )
+})
+
+Object.extend({
+  # Returns true if the two objects have the same keys and values. Handles
+  # nested arrays and objects.
+  _equal: (objectA, objectB) ->
+    return false unless "object" == typeOf( objectA )== typeOf( objectB )
+    return false unless Object.keys( objectA ).sort().join( "" ) == Object.keys( objectB ).sort().join( "" )
+    return Object.every( objectA, (value, key) ->
+      switch typeof value
+        when "object" then Object._equal( value, objectB[key] )
+        when "array" then Array._equal( value, objectB[key] )
+        else value == objectB[key]
+    )
+})
+
+String.implement({
+  # Stronger camelCase. Converts "this is-the_remix" to "thisIsTheRemix"
+  # instead of "this isThe_remix", like `camelCase()` would.
+  forceCamelCase: ->
+    String( this ).replace( /[-_\s]\D/g, (match) ->
+      match.charAt( 1 ).toUpperCase()
+    )
+})
+
+# Binds
+# =====
+#
+# (From MooTools.More) Copy-pasta here so that we only depend on MooTools.Core.
+
+Class.Mutators.Binds = (binds) ->
+  this.implement( "initialize", -> ) if !@prototype.initialize
+  Array.from( binds ).concat( @prototype.Binds || []);
+
+Class.Mutators.initialize = (initialize) ->
+  return( ->
+    Array.from( @Binds ).each(
+      ((name) ->
+        if original = this[name]
+          this[name] = original.bind(this)
+      ),
+      this
+    )
+    return initialize.apply( this, arguments )
+  )
