@@ -21,8 +21,8 @@ describe( "Rickshaw", ->
   )
 
   describe( "template loading", ->
-    xit( "auto-detects and compiles templates", -> )
-    xit( "re-detects and compiles templates", -> )
+    it( "auto-detects and compiles templates" )
+    it( "re-detects and compiles templates" )
   )
 )
 
@@ -32,7 +32,6 @@ describe( "Rickshaw.Utils", ->
       expect( Rickshaw.Utils.equal( 0, 0 ) ).toBe( true )
       expect( Rickshaw.Utils.equal( 1, 2 ) ).toBe( false )
       expect( Rickshaw.Utils.equal( "1", "1" ) ).toBe( true )
-      # Type coercion
       expect( Rickshaw.Utils.equal( "1", 1 ) ).toBe( false )
       expect( Rickshaw.Utils.equal( 1, "1" ) ).toBe( false )
       expect( Rickshaw.Utils.equal( 0, false ) ).toBe( false )
