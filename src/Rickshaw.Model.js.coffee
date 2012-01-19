@@ -87,7 +87,7 @@ Rickshaw._Model = new Class({
   # -----
 
   # Returns true if this model contains data that hasn't been persisted yet.
-  # TODO: Move to persistance layer.
+  # TODO: Move to persistence layer.
   isDirty: -> Object.getLength( @_changedData ) > 0
 
   # Getters

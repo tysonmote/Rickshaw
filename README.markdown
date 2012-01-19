@@ -30,7 +30,7 @@ To do
 
 * Get a spec suite up and running
 * Make ListController rendering more efficient
-* Add the persistance framework back
+* Add the persistence framework back
 
 Examples
 --------
@@ -106,4 +106,4 @@ Contributors
 ------------
 
 * Tyson Tate
-* Casey Speer - Early contributions to the persistance layer.
+* Casey Speer - Early contributions to the persistence layer.
