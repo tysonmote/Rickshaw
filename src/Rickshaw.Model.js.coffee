@@ -71,6 +71,7 @@ Rickshaw._Model = new Class({
     # Setup uuid
     Rickshaw.register( this )
     # Load defaults
+    @defaults = Object.clone( @defaults )
     defaults = Object.map( @defaults, (value, key) ->
       if typeof( value ) == "function"
         value.apply( this, [this] )
@@ -80,7 +81,7 @@ Rickshaw._Model = new Class({
     # Setup data / properties
     @data = Object.merge( defaults, @data )
     @_previousData = Object.clone( @data )
-    @_changedData = {}
+    @dirtyProperties = []
     return this
 
   # State
@@ -88,21 +89,26 @@ Rickshaw._Model = new Class({
 
   # Returns true if this model contains data that hasn't been persisted yet.
   # TODO: Move to persistence layer.
-  isDirty: -> Object.getLength( @_changedData ) > 0
+  isDirty: ->
+    @dirtyProperties.length > 0
 
   # Getters
   # -------
 
   # Return the value of the given property, using a custom getter (if defined).
-  get: (property) ->
-    # TODO: memoize custom getter names so we're not rebuilding the string all
-    # the time. Maybe do the binding at initialize time, too.
-    if customGetter = this["get#{property.forceCamelCase().capitalize()}"]
-     customGetter.bind( this )()
+  # If many properties are passed, an object is passed.
+  get: ->
+    properties = Array.from( arguments ).flatten()
+    if properties.length > 1
+      return properties.map( (property) => this._get( property ) ).associate( properties )
     else
-      this._get( property )
+      return this._get( properties[0] )
 
-  _get: (property) -> @data[property]
+  _get: (property) ->
+    if customGetter = this["get#{property.forceCamelCase().capitalize()}"]
+      Rickshaw.Utils.clone( customGetter.bind( this )() )
+    else
+      Rickshaw.Utils.clone( @data[property] )
 
   # Setters
   # -------
@@ -121,35 +127,36 @@ Rickshaw._Model = new Class({
 
     changedProperties = []
 
-    # Update each value.
     Object.each( newData, (newValue, property) =>
-      oldValue = @data[property]
-      # TODO: same thing as getters above: memoize and bind and initialize time.
-      if customSetter = this["set#{property.forceCamelCase().capitalize()}"]
-        propertyChanged = customSetter.bind( this )( newValue )
-      else
-        propertyChanged = this._set( property, newValue )
-
-      if propertyChanged
-        changedProperties.push( property )
-        @_changedData[property] = newValue
+      changedProperties.push( property ) if this._set( property, newValue )
     )
 
     # Events
-    changedProperties.each( (property) =>
-      this.fireEvent( "#{property.forceCamelCase()}Change", this )
-    )
-    this.fireEvent( "change", [this, changedProperties] ) if changed
+    if changedProperties.length > 0
+      changedProperties.each( (property) =>
+        this.fireEvent( "#{property.forceCamelCase()}Change", this )
+      )
+      this.fireEvent( "change", [this, changedProperties] )
 
     return this
 
   # Update the value for the given property only if it is different. Returns
   # true if the property was changed and false otherwise.
   _set: (property, value) ->
-    return false if Rickshaw.Utils.equal( @data[property], value )
-    @data[property] = value
-    @_changedData[property] = value
-    return true
+    newValue = Rickshaw.Utils.clone( value )
+    if customSetter = this["set#{property.forceCamelCase().capitalize()}"]
+      newValue = customSetter.apply( this, [newValue] )
+
+    if Rickshaw.Utils.equal( @_previousData[property], newValue )
+      @dirtyProperties = @dirtyProperties.erase( property )
+    else
+      @dirtyProperties.include( property )
+
+    if Rickshaw.Utils.equal( @data[property], newValue )
+      return false
+    else
+      @data[property] = newValue
+      return true
 
   Binds: ["_get", "_set"]
 

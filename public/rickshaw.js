@@ -45,6 +45,16 @@
   document.addEvent("domready", Rickshaw.refreshTemplates);
 
   Rickshaw.Utils = {
+    clone: function(item) {
+      switch (typeOf(item)) {
+        case "array":
+          return item.clone();
+        case "object":
+          return Object.clone(item);
+        default:
+          return item;
+      }
+    },
     equal: function(a, b) {
       var aType;
       aType = typeOf(a);
@@ -151,6 +161,7 @@
       var defaults;
       this.data = data != null ? data : {};
       Rickshaw.register(this);
+      this.defaults = Object.clone(this.defaults);
       defaults = Object.map(this.defaults, function(value, key) {
         if (typeof value === "function") {
           return value.apply(this, [this]);
@@ -160,22 +171,31 @@
       });
       this.data = Object.merge(defaults, this.data);
       this._previousData = Object.clone(this.data);
-      this._changedData = {};
+      this.dirtyProperties = [];
       return this;
     },
     isDirty: function() {
-      return Object.getLength(this._changedData) > 0;
+      return this.dirtyProperties.length > 0;
     },
-    get: function(property) {
-      var customGetter;
-      if (customGetter = this["get" + (property.forceCamelCase().capitalize())]) {
-        return customGetter.bind(this)();
+    get: function() {
+      var properties,
+        _this = this;
+      properties = Array.from(arguments).flatten();
+      if (properties.length > 1) {
+        return properties.map(function(property) {
+          return _this._get(property);
+        }).associate(properties);
       } else {
-        return this._get(property);
+        return this._get(properties[0]);
       }
     },
     _get: function(property) {
-      return this.data[property];
+      var customGetter;
+      if (customGetter = this["get" + (property.forceCamelCase().capitalize())]) {
+        return Rickshaw.Utils.clone(customGetter.bind(this)());
+      } else {
+        return Rickshaw.Utils.clone(this.data[property]);
+      }
     },
     set: function(property, value) {
       var changedProperties, newData,
@@ -188,29 +208,35 @@
       }
       changedProperties = [];
       Object.each(newData, function(newValue, property) {
-        var customSetter, oldValue, propertyChanged;
-        oldValue = _this.data[property];
-        if (customSetter = _this["set" + (property.forceCamelCase().capitalize())]) {
-          propertyChanged = customSetter.bind(_this)(newValue);
-        } else {
-          propertyChanged = _this._set(property, newValue);
-        }
-        if (propertyChanged) {
-          changedProperties.push(property);
-          return _this._changedData[property] = newValue;
+        if (_this._set(property, newValue)) {
+          return changedProperties.push(property);
         }
       });
-      changedProperties.each(function(property) {
-        return _this.fireEvent("" + (property.forceCamelCase()) + "Change", _this);
-      });
-      if (changed) this.fireEvent("change", [this, changedProperties]);
+      if (changedProperties.length > 0) {
+        changedProperties.each(function(property) {
+          return _this.fireEvent("" + (property.forceCamelCase()) + "Change", _this);
+        });
+        this.fireEvent("change", [this, changedProperties]);
+      }
       return this;
     },
     _set: function(property, value) {
-      if (Rickshaw.Utils.equal(this.data[property], value)) return false;
-      this.data[property] = value;
-      this._changedData[property] = value;
-      return true;
+      var customSetter, newValue;
+      newValue = Rickshaw.Utils.clone(value);
+      if (customSetter = this["set" + (property.forceCamelCase().capitalize())]) {
+        newValue = customSetter.apply(this, [newValue]);
+      }
+      if (Rickshaw.Utils.equal(this._previousData[property], newValue)) {
+        this.dirtyProperties = this.dirtyProperties.erase(property);
+      } else {
+        this.dirtyProperties.include(property);
+      }
+      if (Rickshaw.Utils.equal(this.data[property], newValue)) {
+        return false;
+      } else {
+        this.data[property] = newValue;
+        return true;
+      }
     },
     Binds: ["_get", "_set"]
   });

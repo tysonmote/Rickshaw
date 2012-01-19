@@ -63,6 +63,12 @@ document.addEvent( "domready", Rickshaw.refreshTemplates )
 # ==============
 
 Rickshaw.Utils = {
+  clone: (item) ->
+    switch typeOf( item )
+      when "array" then return item.clone()
+      when "object" then return Object.clone( item )
+      else return item
+
   equal: (a, b) ->
     aType = typeOf( a )
     return false unless aType == typeOf( b )
