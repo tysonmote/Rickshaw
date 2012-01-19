@@ -48,6 +48,7 @@
     equal: function(a, b) {
       var aType;
       aType = typeOf(a);
+      if (aType !== typeOf(b)) return false;
       if (aType === "array") {
         return Array._equal(a, b);
       } else if (aType === "object") {
@@ -73,7 +74,7 @@
       }
       if (arrayA.length !== arrayB.length) return false;
       return arrayA.every(function(value, index) {
-        switch (typeof value) {
+        switch (typeOf(value)) {
           case "object":
             return Object._equal(value, arrayB[index]);
           case "array":
@@ -108,7 +109,7 @@
         return false;
       }
       return Object.every(objectA, function(value, key) {
-        switch (typeof value) {
+        switch (typeOf(value)) {
           case "object":
             return Object._equal(value, objectB[key]);
           case "array":

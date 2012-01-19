@@ -65,6 +65,7 @@ document.addEvent( "domready", Rickshaw.refreshTemplates )
 Rickshaw.Utils = {
   equal: (a, b) ->
     aType = typeOf( a )
+    return false unless aType == typeOf( b )
     if aType == "array"
       Array._equal( a, b )
     else if aType == "object"
@@ -88,7 +89,7 @@ Array.extend({
     return false unless "array" == typeOf( arrayA ) == typeOf( arrayB )
     return false unless arrayA.length == arrayB.length
     return arrayA.every( (value, index) ->
-      switch typeof value
+      switch typeOf( value )
         when "object" then Object._equal( value, arrayB[index] )
         when "array" then Array._equal( value, arrayB[index] )
         else value == arrayB[index]
@@ -112,7 +113,7 @@ Object.extend({
     return false unless "object" == typeOf( objectA )== typeOf( objectB )
     return false unless Object.keys( objectA ).sort().join( "" ) == Object.keys( objectB ).sort().join( "" )
     return Object.every( objectA, (value, key) ->
-      switch typeof value
+      switch typeOf( value )
         when "object" then Object._equal( value, objectB[key] )
         when "array" then Array._equal( value, objectB[key] )
         else value == objectB[key]
