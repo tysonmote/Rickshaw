@@ -29,6 +29,7 @@ describe( "Rickshaw.Model", ->
       })
 
       megaTodo = new MegaTodo()
+      expect( megaTodo.data ).toEqual( {} )
       expect( megaTodo.isTodo ).toBe( false )
       expect( megaTodo.isMegaTodo ).toBe( true )
       expect( megaTodo.getThis() ).toBe( megaTodo )
