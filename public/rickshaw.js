@@ -73,6 +73,9 @@
           Extends: baseClass
         }, params));
       });
+    },
+    isModelInstance: function(item) {
+      return !!(item._uuid && item._get && item._set && item.data);
     }
   };
 
@@ -215,7 +218,7 @@
     set: function(property, value) {
       var changedProperties, newData,
         _this = this;
-      if (typeof property === "object") {
+      if (typeOf(property) === "object") {
         newData = property;
       } else {
         newData = {};
@@ -265,22 +268,22 @@
     models: [],
     initialize: function() {
       Rickshaw.register(this);
-      if (arguments.length > 0) this._add("push", arguments);
+      if (arguments.length > 0) this.push.apply(this, arguments);
       return this;
     },
     uuids: function() {
       return this.models.mapProperty("uuid");
     },
-    push: function(model) {
+    push: function() {
       var models, result;
-      models = this._prepareAddArgs(model);
+      models = this._prepareAddArgs(arguments);
       result = Array.prototype.push.apply(this, models);
       this.fireEvent("add", [this, models, "end"]);
       return result;
     },
-    unshift: function(model) {
+    unshift: function() {
       var models, result;
-      models = this._prepareAddArgs(model);
+      models = this._prepareAddArgs(arguments);
       result = Array.prototype.unshift.apply(this, models);
       this.fireEvent("add", [this, models, "beginning"]);
       return result;
@@ -289,7 +292,7 @@
       var models, startingLength;
       startingLength = this.length;
       models = this._prepareAddArgs(model);
-      Array.prototype.push.apply(this, models);
+      Array.prototype.include.apply(this, models);
       if (startingLength !== this.length) {
         this.fireEvent("add", [this, models, "beginning"]);
       }
@@ -299,10 +302,10 @@
       var newModels, startingLength;
       startingLength = this.length;
       models = this._prepareAddArgs(models);
-      Array.prototype.combine.apply(this, models);
+      Array.prototype.combine.apply(this, [models]);
       if (startingLength !== this.length) {
         newModels = this.slice(startingLength);
-        this.fireEvent("add", [this, newModels, "beginning"]);
+        this.fireEvent("add", [this, newModels, "end"]);
       }
       return this;
     },
@@ -326,21 +329,32 @@
       this.fireEvent("remove", [this, [model], "end"]);
       return model;
     },
-    unshift: function() {
+    shift: function() {
       var model;
-      model = Array.prototype.unshift.apply(this);
+      model = Array.prototype.shift.apply(this);
       this._detachModel(model);
       this.fireEvent("remove", [this, [model], "beginning"]);
       return model;
     },
     erase: function(model) {
-      var startingLength;
-      if (!model._uuid) throw "Can't erase non-model objects yet.";
-      startingLength = this.length;
-      Array.prototype.erase.apply(this, model);
-      if (startingLength !== this.length) {
+      var i, removedIndexes;
+      if (!Rickshaw.Utils.isModelInstance(model)) {
+        throw {
+          name: "ModelRequired",
+          message: "Can't erase non-model objects yet."
+        };
+      }
+      i = this.length;
+      removedIndexes = [];
+      while (i--) {
+        if (this[i] === model) {
+          removedIndexes.push(i);
+          Array.prototype.splice.apply(this, [i, 1]);
+        }
+      }
+      if (removedIndexes.length > 0) {
         this._detachModel(model);
-        this.fireEvent("remove", [this, [model]]);
+        this.fireEvent("remove", [this, [model], removedIndexes]);
       }
       return this;
     },
@@ -403,7 +417,7 @@
     },
     _modelFrom: function(data) {
       var klass;
-      if (typeOf(data) === "class") {
+      if (Rickshaw.Utils.isModelInstance(data)) {
         return data;
       } else {
         if (typeOf(this.modelClass) === "function") {
@@ -469,7 +483,10 @@
       if (template = Rickshaw.Templates[this.templateName]) {
         return template(this);
       } else {
-        throw "Template \"" + this.templateName + "\" not found.";
+        throw {
+          name: "TemplateNotFound",
+          message: "Template \"" + this.templateName + "\" not found."
+        };
       }
     },
     _setupSubcontroller: function(subcontroller) {

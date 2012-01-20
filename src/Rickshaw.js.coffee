@@ -71,10 +71,10 @@ Rickshaw.Utils = {
 
   equal: (a, b) ->
     aType = typeOf( a )
-    return false unless aType == typeOf( b )
-    if aType == "array"
+    return false unless aType is typeOf( b )
+    if aType is "array"
       Array._equal( a, b )
-    else if aType == "object"
+    else if aType is "object"
       Object._equal( a, b )
     else
       a == b
@@ -83,6 +83,10 @@ Rickshaw.Utils = {
     return( (params) ->
       new Class( Object.merge( { Extends: baseClass }, params ) )
     )
+
+  # Returns true if the given item is an instance of a Rickshaw.Model subclass.
+  isModelInstance: (item) ->
+    !!( item._uuid && item._get && item._set && item.data )
 }
 
 # MooTools Extensions
@@ -116,7 +120,7 @@ Object.extend({
   # Returns true if the two objects have the same keys and values. Handles
   # nested arrays and objects.
   _equal: (objectA, objectB) ->
-    return false unless "object" == typeOf( objectA )== typeOf( objectB )
+    return false unless "object" == typeOf( objectA ) == typeOf( objectB )
     return false unless Object.keys( objectA ).sort().join( "" ) == Object.keys( objectB ).sort().join( "" )
     return Object.every( objectA, (value, key) ->
       switch typeOf( value )

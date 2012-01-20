@@ -40,7 +40,7 @@ Rickshaw._List = new Class({
 
   initialize: ->
     Rickshaw.register( this )
-    this._add( "push", arguments ) if arguments.length > 0
+    this.push.apply( this, arguments ) if arguments.length > 0
     return this
 
   # Array of all model UUIDs. Used for detecting changes after sorts without
@@ -54,32 +54,32 @@ Rickshaw._List = new Class({
   # of if statements because of the different expected arguments and return
   # values for each Array method.
 
-  push: (model) ->
-    models = this._prepareAddArgs( model )
-    result = Array.prototype.push.apply( this, models )
+  push: ->
+    models = this._prepareAddArgs( arguments )
+    result = Array::push.apply( this, models )
     this.fireEvent( "add", [this, models, "end"] )
     return result
 
-  unshift: (model) ->
-    models = this._prepareAddArgs( model )
-    result = Array.prototype.unshift.apply( this, models )
+  unshift: ->
+    models = this._prepareAddArgs( arguments )
+    result = Array::unshift.apply( this, models )
     this.fireEvent( "add", [this, models, "beginning"] )
     return result
 
   include: (model) ->
     startingLength = @length
     models = this._prepareAddArgs( model )
-    Array.prototype.push.apply( this, models )
+    Array::include.apply( this, models )
     this.fireEvent( "add", [this, models, "beginning"] ) if startingLength != @length
     return this
 
   combine: (models) ->
     startingLength = @length
     models = this._prepareAddArgs( models )
-    Array.prototype.combine.apply( this, models )
+    Array::combine.apply( this, [models] )
     if startingLength != @length
       newModels = this.slice( startingLength )
-      this.fireEvent( "add", [this, newModels, "beginning"] )
+      this.fireEvent( "add", [this, newModels, "end"] )
     return this
 
   # Returns flat array of Model instances, pre-attached to this List.
@@ -101,41 +101,48 @@ Rickshaw._List = new Class({
   # --------
 
   pop: ->
-    model = Array.prototype.pop.apply( this )
+    model = Array::pop.apply( this )
     this._detachModel( model  )
     this.fireEvent( "remove", [this, [model], "end"] )
     return model
 
-  unshift: ->
-    model = Array.prototype.unshift.apply( this )
+  shift: ->
+    model = Array::shift.apply( this )
     this._detachModel( model  )
     this.fireEvent( "remove", [this, [model], "beginning"] )
     return model
 
+  # MooTools's implementation uses this.splice() and doesn't return the indexes
+  # that were removed, so here's our own hot implementation here.
   erase: (model) ->
-    throw "Can't erase non-model objects yet." unless model._uuid
-    startingLength = @length
-    Array.prototype.erase.apply( this, model )
-    if startingLength != @length
+    unless Rickshaw.Utils.isModelInstance( model )
+      throw name: "ModelRequired", message: "Can't erase non-model objects yet."
+    i = @length
+    removedIndexes = []
+    while i--
+      if this[i] is model
+        removedIndexes.push( i )
+        Array::splice.apply( this, [i, 1] )
+    if removedIndexes.length > 0
       this._detachModel( model )
-      this.fireEvent( "remove", [this, [model]] )
+      this.fireEvent( "remove", [this, [model], removedIndexes] )
     return this
 
   empty: ->
-    return if @length == 0
+    return if @length is 0
     this.each( this._detachModel )
     this.fireEvent( "remove", [this, this] )
     this.length = 0
     return this
 
   splice: (index, count, addModels...) ->
-    removedModels = Array.prototype.splice.apply( this, arguments )
+    removedModels = Array::splice.apply( this, arguments )
     removedModels.each( this._detachModel )
     this.fireEvent( "remove", [this, removedModels, index] ) if removedModels.length > 0
 
     if addModels.length > 0
       addModels = this._prepareAddArgs( addModels )
-      Array.prototype.splice.apply( this, [index, 0, addModels] )
+      Array::splice.apply( this, [index, 0, addModels] )
       this.fireEvent( "add", [this, addModels, index] )
 
     return removedModels
@@ -155,7 +162,7 @@ Rickshaw._List = new Class({
 
   reverse: ->
     return this if @length < 2
-    Array.prototype.reverse.apply( this )
+    Array::reverse.apply( this )
     this.fireEvent( "sort", [this] )
 
   # =========
@@ -177,19 +184,20 @@ Rickshaw._List = new Class({
   # Model instances.
   _ensureModels: (array) ->
     Array.from( array ).map( (item) =>
-      if typeOf( item ) == "array"
+      if typeOf( item ) is "array"
         this._ensureModels( item )
       else
         this._modelFrom( item )
     )
 
-  # Model can be a Model, a data hash, or an id (string / number). Returns
-  # an instance of the model.
+  # Returns a model instance for the given parameter. Model can be a Model
+  # instance (in which case it is simply returned) or a data hash, from which
+  # a new model instance will be returned.
   _modelFrom: (data) ->
-    if typeOf( data ) == "class"
+    if Rickshaw.Utils.isModelInstance( data )
       return data
     else
-      if typeOf( @modelClass ) == "function"
+      if typeOf( @modelClass ) is "function"
         klass = @modelClass( data )
         return new klass( data )
       else

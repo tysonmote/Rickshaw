@@ -77,7 +77,7 @@ Rickshaw._Model = new Class({
   _initData: (data) ->
     @defaults = Object.clone( @defaults )
     defaults = Object.map( @defaults, (value, key) ->
-      if typeof( value ) == "function"
+      if typeof( value ) is "function"
         value.apply( this, [this] )
       else
         value
@@ -127,7 +127,7 @@ Rickshaw._Model = new Class({
   #     this.set({ name: "Bob", age: 30 })
   #
   set: (property, value) ->
-    if typeof property == "object"
+    if typeOf( property ) is "object"
       newData = property
     else
       newData = {}

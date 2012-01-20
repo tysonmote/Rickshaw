@@ -74,7 +74,7 @@ Rickshaw._BaseController = new Class({
     if template = Rickshaw.Templates[@templateName]
       return template( this )
     else
-      throw "Template \"#{@templateName}\" not found."
+      throw name: "TemplateNotFound", message: "Template \"#{@templateName}\" not found."
 
   # Subcontrollers
   # --------------
@@ -105,7 +105,7 @@ Rickshaw._BaseController = new Class({
     controller = this
     @__boundElementEvents ||= Object.map( @events, (events, selector) ->
       Object.map( events, (fn, eventName) ->
-        fn = controller[fn] if typeof fn == "string"
+        fn = controller[fn] if typeof fn is "string"
         (e) -> fn.apply( controller, [e, this])
       )
     )
@@ -251,7 +251,7 @@ Rickshaw._ListController = new Class({
   # Creates subcontroller for the model and hooks it all up.
   # Returns placeholder html.
   _setupSubcontrollerWithModel: (model) ->
-    klass = if typeof @subcontroller == "function"
+    klass = if typeof @subcontroller is "function"
       this.subcontroller( model )
     else
       this.subcontroller
