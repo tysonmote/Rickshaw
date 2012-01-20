@@ -15,6 +15,26 @@ describe( "Rickshaw.Model", ->
     )
   )
 
+  describe( "subclassing", ->
+    it( "works", ->
+      Todo = new Rickshaw.Model({
+        isTodo: true
+        getThis: -> this
+      })
+
+      MegaTodo = new Rickshaw.Model({
+        Extends: Todo
+        isTodo: false
+        isMegaTodo: true
+      })
+
+      megaTodo = new MegaTodo()
+      expect( megaTodo.isTodo ).toBe( false )
+      expect( megaTodo.isMegaTodo ).toBe( true )
+      expect( megaTodo.getThis() ).toBe( megaTodo )
+    )
+  )
+
   describe( "#get()", ->
     beforeEach( ->
       @Todo = new Rickshaw.Model({
