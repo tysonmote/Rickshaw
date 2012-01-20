@@ -166,11 +166,67 @@ describe "Rickshaw.List", ->
       @todoList.erase( @todo2 )
       expect( eventArgs ).toEqualArray [@todoList, [@todo2], [4, 1]]
 
-    describe "empty", ->
-      # TODO
+  describe "empty", ->
+    beforeEach ->
+      @todoList = new @CombinedTodoList @todo1, @todo2
 
-    describe "splice", ->
-      # TODO
+    it "removes all models", ->
+      expect( @todoList.empty() ).toBe( @todoList )
+      expect( @todoList ).toEqualArray( [] )
+
+    it "fires an onRemove event", ->
+      eventArgs = null
+      @todoList.addEvent "remove", -> eventArgs = Array.from( arguments )
+      @todoList.empty()
+      expect( eventArgs ).toEqualArray [@todoList, [@todo1, @todo2], "all"]
+      eventArgs = null
+      @todoList.empty()
+      expect( eventArgs ).toBeNull()
+
+  describe "splice", ->
+    beforeEach ->
+      @todoList = new @CombinedTodoList @todo1, @todo2
+
+    it "does nothing", ->
+      expect( @todoList.splice( 1, 0 ) ).toEqualArray []
+      expect( @todoList ).toEqualArray( [@todo1, @todo2] )
+
+    it "removes a model", ->
+      expect( @todoList.splice( 1, 1 ) ).toEqualArray [@todo2]
+      expect( @todoList ).toEqualArray( [@todo1] )
+
+    it "removes multiple models", ->
+      @todoList.push( @megaTodo1, @megaTodo2 )
+      expect( @todoList.splice( 1, 2 ) ).toEqualArray [@todo2, @megaTodo1]
+      expect( @todoList ).toEqualArray [@todo1, @megaTodo2]
+
+    it "removes models", ->
+      expect( @todoList.splice( 1, 2 ) ).toEqualArray [@todo2]
+
+    it "adds a model", ->
+      expect( @todoList.splice( 1, 0, @megaTodo1 ) ).toEqualArray []
+      expect( @todoList ).toEqualArray [@todo1, @megaTodo1, @todo2]
+
+    it "adds multtiple models", ->
+      expect( @todoList.splice( 1, 0, @megaTodo1, @megaTodo2 ) ).toEqualArray []
+      expect( @todoList ).toEqualArray [@todo1, @megaTodo1, @megaTodo2, @todo2]
+
+    it "removes and adds models", ->
+      
+
+    it "IS KIND OF WACKY TBH", ->
+      
+
+    it "fires remove events", ->
+      
+
+    it "fires add events", ->
+      
+
+    it "fires both events", ->
+      
+
+    # TODO
 
   # Nested events
   # -------------

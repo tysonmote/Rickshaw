@@ -359,23 +359,27 @@
       return this;
     },
     empty: function() {
+      var removedModels;
       if (this.length === 0) return;
       this.each(this._detachModel);
-      this.fireEvent("remove", [this, this]);
+      removedModels = this.map(function(obj) {
+        return obj;
+      });
       this.length = 0;
+      this.fireEvent("remove", [this, removedModels, "all"]);
       return this;
     },
     splice: function() {
       var addModels, count, index, removedModels;
       index = arguments[0], count = arguments[1], addModels = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-      removedModels = Array.prototype.splice.apply(this, arguments);
+      removedModels = Array.prototype.splice.apply(this, [index, count]);
       removedModels.each(this._detachModel);
       if (removedModels.length > 0) {
         this.fireEvent("remove", [this, removedModels, index]);
       }
       if (addModels.length > 0) {
         addModels = this._prepareAddArgs(addModels);
-        Array.prototype.splice.apply(this, [index, 0, addModels]);
+        Array.prototype.splice.apply(this, [index, 0].concat(addModels));
         this.fireEvent("add", [this, addModels, index]);
       }
       return removedModels;

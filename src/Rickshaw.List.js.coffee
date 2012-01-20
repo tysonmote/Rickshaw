@@ -131,18 +131,19 @@ Rickshaw._List = new Class({
   empty: ->
     return if @length is 0
     this.each( this._detachModel )
-    this.fireEvent( "remove", [this, this] )
+    removedModels = this.map( (obj) -> obj ) # new array
     this.length = 0
+    this.fireEvent( "remove", [this, removedModels, "all"] )
     return this
 
   splice: (index, count, addModels...) ->
-    removedModels = Array::splice.apply( this, arguments )
+    removedModels = Array::splice.apply( this, [index, count] )
     removedModels.each( this._detachModel )
     this.fireEvent( "remove", [this, removedModels, index] ) if removedModels.length > 0
 
     if addModels.length > 0
       addModels = this._prepareAddArgs( addModels )
-      Array::splice.apply( this, [index, 0, addModels] )
+      Array::splice.apply( this, [index, 0].concat( addModels ) )
       this.fireEvent( "add", [this, addModels, index] )
 
     return removedModels
