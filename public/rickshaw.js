@@ -158,9 +158,14 @@
     Implements: [Events],
     defaults: {},
     initialize: function(data) {
-      var defaults;
-      this.data = data != null ? data : {};
+      if (data == null) data = {};
       Rickshaw.register(this);
+      this._initData(data);
+      this._attachEvents();
+      return this;
+    },
+    _initData: function(data) {
+      var defaults;
       this.defaults = Object.clone(this.defaults);
       defaults = Object.map(this.defaults, function(value, key) {
         if (typeof value === "function") {
@@ -169,10 +174,20 @@
           return value;
         }
       });
-      this.data = Object.merge(defaults, this.data);
+      this.data = Object.merge(defaults, data);
       this._previousData = Object.clone(this.data);
-      this.dirtyProperties = [];
-      return this;
+      return this.dirtyProperties = [];
+    },
+    _attachEvents: function() {
+      var _this = this;
+      return Object.each(this.__proto__, function(fn, name) {
+        var match;
+        if (match = name.match(/^on[A-Z][A-Za-z]+Change$/)) {
+          return _this.addEvent(match[0], function() {
+            return fn.apply(this, arguments);
+          });
+        }
+      });
     },
     isDirty: function() {
       return this.dirtyProperties.length > 0;

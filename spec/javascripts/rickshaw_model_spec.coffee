@@ -139,7 +139,35 @@ describe( "Rickshaw.Model", ->
       expect( @todo.dirtyProperties ).toEqual([])
     )
 
-    it( "fires change events" )
+    it( "fires change events", ->
+      eventFired = false
+      propertyEventFired = false
+      changedEvent = false
+
+      @Todo = new Rickshaw.Model({
+        onBlobChange: ->
+          propertyEventFired = true
+          @propertyEventFired = "yep"
+      })
+      @todo = new @Todo({ blob: "foo" })
+      @todo.addEvent( "blobChange", ->
+        eventFired = true
+        this.eventFired = "yep"
+      )
+      @todo.addEvent( "change", -> changedEvent = Array.from( arguments ) )
+
+      @todo.set( "blob", "foo" )
+      expect( eventFired ).toBe( false )
+      expect( propertyEventFired ).toBe( false )
+      expect( changedEvent ).toBe( false )
+
+      @todo.set({ blob: "bar", other: "rad" })
+      expect( eventFired ).toBe( true )
+      expect( propertyEventFired ).toBe( true )
+      expect( changedEvent ).toEqual( [@todo, ["blob", "other"]] )
+      expect( @todo.eventFired ).toEqual( "yep" )
+      expect( @todo.propertyEventFired ).toEqual( "yep" )
+    )
 
   )
 )

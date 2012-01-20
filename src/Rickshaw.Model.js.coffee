@@ -53,8 +53,8 @@ Rickshaw._Model = new Class({
 
   Implements: [Events]
 
-  # Class Settings
-  # --------------
+  # Options
+  # -------
 
   # Default property values. Any defaults that are functions will be executed
   # and passed this model instance at initialize time.
@@ -67,10 +67,14 @@ Rickshaw._Model = new Class({
   # -----
 
   # Initialize a new model.
-  initialize: (@data = {}) ->
+  initialize: (data = {}) ->
     # Setup uuid
     Rickshaw.register( this )
-    # Load defaults
+    this._initData( data )
+    this._attachEvents()
+    return this
+
+  _initData: (data) ->
     @defaults = Object.clone( @defaults )
     defaults = Object.map( @defaults, (value, key) ->
       if typeof( value ) == "function"
@@ -78,11 +82,15 @@ Rickshaw._Model = new Class({
       else
         value
     )
-    # Setup data / properties
-    @data = Object.merge( defaults, @data )
+    @data = Object.merge( defaults, data )
     @_previousData = Object.clone( @data )
     @dirtyProperties = []
-    return this
+
+  _attachEvents: ->
+    Object.each( this.__proto__, (fn, name) =>
+      if match = name.match( /^on[A-Z][A-Za-z]+Change$/ )
+        this.addEvent( match[0], -> fn.apply( this, arguments ) )
+    )
 
   # State
   # -----
