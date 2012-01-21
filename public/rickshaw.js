@@ -418,7 +418,7 @@
     reverse: function() {
       if (this.length < 2) return this;
       Array.prototype.reverse.apply(this);
-      return this.fireEvent("sort", [this]);
+      return this.fireEvent("sort", [this, "reverse"]);
     },
     _modelChanged: function(model, properties) {
       return this.fireEvent("change", [this, model, properties]);

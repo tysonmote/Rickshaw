@@ -165,23 +165,23 @@ Rickshaw._List = new Class({
     this
 
   _sortWithFn: (fn) ->
-    Array::sort.pass( this, [fn] )
+    Array::sort.pass this, [fn]
 
   reverse: ->
     return this if @length < 2
-    Array::reverse.apply( this )
-    this.fireEvent( "sort", [this] )
+    Array::reverse.apply this
+    this.fireEvent "sort", [this, "reverse"]
 
   # =========
   # = Hooks =
   # =========
 
   _modelChanged: (model, properties) ->
-    this.fireEvent( "change", [this, model, properties] )
+    this.fireEvent "change", [this, model, properties]
 
   _modelDeleted: (model) ->
     model.removeEvent()
-    this.remove( model )
+    this.remove model
 
   # =========
   # = Misc. =

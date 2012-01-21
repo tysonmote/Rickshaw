@@ -318,9 +318,24 @@ describe "Rickshaw.List", ->
       expect( sortEvent.timesFired ).toBe( 1 )
 
   describe "#reverse", ->
+    beforeEach ->
+      @todoList = new @TodoList( @todo1, @todo2, @megaTodo1 )
+
     it "reverses the contents", ->
-      
+      expect( @todoList.reverse() ).toBe( @todoList )
+      expect( @todoList ).toEqualArray( [@megaTodo1, @todo2, @todo1] )
+
     it "fires the sort event", ->
-      
+      sortEvent = new EventCapture @todoList, "sort"
+      @todoList.reverse()
+      expect( sortEvent.timesFired ).toBe( 1 )
+      expect( sortEvent.arguments ).toEqualArray( [@todoList, "reverse"] )
+
     it "doesn't fire anything for lists with 0 or 1 elements", ->
-      
+      @todoList.pop()
+      @todoList.pop() # 1 item left
+      sortEvent = new EventCapture @todoList, "sort"
+      expect( @todoList.reverse() ).toBe( @todoList )
+      @todoList.pop()
+      expect( @todoList.reverse() ).toBe( @todoList )
+      expect( sortEvent.timesFired ).toBe( 0 )
