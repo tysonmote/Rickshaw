@@ -10,7 +10,7 @@ describe "Rickshaw.Model", ->
 
     it "creates an instance", ->
       todo = new @Todo()
-      expect( instanceOf( todo, @Todo ) ).toBe true
+      expect( instanceOf( todo, @Todo ) ).toBe( true )
 
   describe "subclassing", ->
     it "works", ->
@@ -26,10 +26,10 @@ describe "Rickshaw.Model", ->
       }
 
       megaTodo = new MegaTodo()
-      expect( megaTodo.data ).toEqual {}
-      expect( megaTodo.isTodo ).toBe false
-      expect( megaTodo.isMegaTodo ).toBe true
-      expect( megaTodo.getThis() ).toBe megaTodo
+      expect( megaTodo.data ).toEqual( {} )
+      expect( megaTodo.isTodo ).toBe( false )
+      expect( megaTodo.isMegaTodo ).toBe( true )
+      expect( megaTodo.getThis() ).toBe( megaTodo )
 
   describe "#get()", ->
     beforeEach ->
@@ -45,36 +45,36 @@ describe "Rickshaw.Model", ->
       }
 
     it "gets properties", ->
-      expect( @todo.get( "text" ) ).toEqual "Read a book"
-      expect( @todo.get( "done" ) ).toEqual false
+      expect( @todo.get( "text" ) ).toEqual( "Read a book" )
+      expect( @todo.get( "done" ) ).toEqual( false )
 
     it "gets many properties at once", ->
-      expect( @todo.get( "text", "done" ) ).toEqual { text: "Read a book", done: false }
-      expect( @todo.get([ "text", "done" ]) ).toEqual { text: "Read a book", done: false }
+      expect( @todo.get( "text", "done" ) ).toEqual( { text: "Read a book", done: false } )
+      expect( @todo.get([ "text", "done" ]) ).toEqual( { text: "Read a book", done: false } )
 
     it "can have default values", ->
-      expect( @todo.get( "rad" ) ).toBe true
-      expect( @todo.get( "neat" ) ).toEqual "yes" # as functions
+      expect( @todo.get( "rad" ) ).toBe( true )
+      expect( @todo.get( "neat" ) ).toEqual( "yes" # as functions )
 
     it "can have custom getters", ->
-      expect( @todo.get( "time" ) ).toEqual "Today"
-      expect( @todo.get( "camelcaseText" ) ).toEqual "ReadABook"
+      expect( @todo.get( "time" ) ).toEqual( "Today" )
+      expect( @todo.get( "camelcaseText" ) ).toEqual( "ReadABook" )
 
     it "returns clones of objects", ->
       # To prevent unintentional modification
       original = { a: true }
       @todo = new @Todo({ blob: original })
-      expect( @todo.get( "blob" ) ).not.toBe original
+      expect( @todo.get( "blob" ) ).not.toBe( original )
       @todo.get( "blob" ).a = false
-      expect( @todo.get( "blob" ) ).toEqual { a: true }
+      expect( @todo.get( "blob" ) ).toEqual( { a: true } )
 
     it "returns clones of arrays", ->
       # To prevent unintentional modification
       original = [1, 2]
       @todo = new @Todo({ blob: original })
-      expect( @todo.get( "blob" ) ).not.toBe original
+      expect( @todo.get( "blob" ) ).not.toBe( original )
       @todo.get( "blob" )[2] = 3
-      expect( @todo.get( "blob" ) ).toEqual [ 1, 2 ]
+      expect( @todo.get( "blob" ) ).toEqual( [ 1, 2 ] )
 
   describe "#set()", ->
     beforeEach ->
@@ -86,37 +86,37 @@ describe "Rickshaw.Model", ->
       @todo = new @Todo()
 
     it "sets properties", ->
-      expect( @todo.set( "stuff", "cool" ) ).toEqual @todo
-      expect( @todo.get( "stuff" ) ).toEqual "cool"
+      expect( @todo.set( "stuff", "cool" ) ).toEqual( @todo )
+      expect( @todo.get( "stuff" ) ).toEqual( "cool" )
 
     it "uses custom setters", ->
-      expect( @todo.set( "title", "work" ) ).toEqual @todo
-      expect( @todo.get( "title" ) ).toEqual "Work"
+      expect( @todo.set( "title", "work" ) ).toEqual( @todo )
+      expect( @todo.get( "title" ) ).toEqual( "Work" )
 
     it "sets many properties at once", ->
-      expect( @todo.set({ a: 1, b: 2 }) ).toEqual @todo
-      expect( @todo.get( "a" ) ).toEqual 1
-      expect( @todo.get( "b" ) ).toEqual 2
+      expect( @todo.set({ a: 1, b: 2 }) ).toEqual( @todo )
+      expect( @todo.get( "a" ) ).toEqual( 1 )
+      expect( @todo.get( "b" ) ).toEqual( 2 )
 
     it "tracks dirty states of basic primitives", ->
       expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "done", false
-      expect( @todo.isDirty() ).toBe false
+      expect( @todo.isDirty() ).toBe( false )
       expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "done", true
-      expect( @todo.isDirty() ).toBe true
+      expect( @todo.isDirty() ).toBe( true )
       expect( @todo.dirtyProperties ).toEqual( ["done"] )
       @todo.set "title", "work"
-      expect( @todo.isDirty() ).toBe true
+      expect( @todo.isDirty() ).toBe( true )
       expect( @todo.dirtyProperties ).toEqual( ["done", "title"] )
 
     it "tracks dirty states with custom setters", ->
       @todo = new @Todo({ title: "Work" })
       @todo.set "title", "work"
-      expect( @todo.isDirty() ).toBe false
+      expect( @todo.isDirty() ).toBe( false )
       expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "title", "play"
-      expect( @todo.isDirty() ).toBe true
+      expect( @todo.isDirty() ).toBe( true )
       expect( @todo.dirtyProperties ).toEqual( ["title"] )
 
     it "tracks dirty states of arrays ", ->
@@ -132,12 +132,12 @@ describe "Rickshaw.Model", ->
     it "tracks dirty states of objects", ->
       @todo = new @Todo({ blob: {a: [1, 2]} })
       @todo.set "blob", {a: [1, 2]}
-      expect( @todo.dirtyProperties ).toEqual []
+      expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "blob", {a: [1, 3]}
-      expect( @todo.dirtyProperties ).toEqual ["blob"]
+      expect( @todo.dirtyProperties ).toEqual( ["blob"] )
       # And back
       @todo.set "blob", {a: [1, 2]}
-      expect( @todo.dirtyProperties ).toEqual []
+      expect( @todo.dirtyProperties ).toEqual( [] )
 
     it "fires change events", ->
       eventFired = false
@@ -156,13 +156,13 @@ describe "Rickshaw.Model", ->
       @todo.addEvent "change", -> changedEvent = Array.from( arguments )
 
       @todo.set "blob", "foo"
-      expect( eventFired ).toBe false
-      expect( propertyEventFired ).toBe false
-      expect( changedEvent ).toBe false
+      expect( eventFired ).toBe( false )
+      expect( propertyEventFired ).toBe( false )
+      expect( changedEvent ).toBe( false )
 
       @todo.set { blob: "bar", other: "rad" }
-      expect( eventFired ).toBe true
-      expect( propertyEventFired ).toBe true
-      expect( changedEvent ).toEqual [@todo, ["blob", "other"]]
-      expect( @todo.eventFired ).toEqual "yep"
-      expect( @todo.propertyEventFired ).toEqual "yep"
+      expect( eventFired ).toBe( true )
+      expect( propertyEventFired ).toBe( true )
+      expect( changedEvent ).toEqual( [@todo, ["blob", "other"]] )
+      expect( @todo.eventFired ).toEqual( "yep" )
+      expect( @todo.propertyEventFired ).toEqual( "yep" )

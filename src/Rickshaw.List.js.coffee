@@ -30,11 +30,6 @@ Rickshaw._List = new Class({
   # should return the correct model class for the data.
   modelClass: Rickshaw.Model
 
-  # Properties
-  # ----------
-
-  models: []
-
   # Setup
   # -----
 
@@ -45,7 +40,7 @@ Rickshaw._List = new Class({
 
   # Array of all model UUIDs. Used for detecting changes after sorts without
   # assuming that every sort actuall changed the sort order.
-  uuids: -> @models.mapProperty( "uuid" )
+  uuids: -> this.mapProperty( "_uuid" )
 
   # Adding
   # ------
@@ -148,17 +143,29 @@ Rickshaw._List = new Class({
     return removedModels
 
   _detachModel: (model) ->
-    model.removeEvent( "change", this._modelChanged )
-    model.removeEvent( "delete", this._modelDeleted )
+    model.removeEvent "change", this._modelChanged
+    model.removeEvent "delete", this._modelDeleted
 
   # Sorting
   # -------
 
-  sort: (fn) ->
+  sort: (fnOrProp, direction="ascending") ->
     startOrder = this.uuids()
-    this.parent( fn )
+    if typeof fnOrProp is "function"
+      this.parent fnOrProp
+    else if typeof fnOrProp is "string"
+      if direction is "descending"
+        this.parent (a, b) -> Array._compare( b.get( fnOrProp ), a.get( fnOrProp ) )
+      else
+        this.parent (a, b) -> Array._compare( a.get( fnOrProp ), b.get( fnOrProp ) )
+    else
+      throw name: "ArgumentError", message: "You must pass a model property as a string or a sort function."
     endOrder = this.uuids()
     this.fireEvent( "sort", [this] ) unless Array._equal( startOrder, endOrder )
+    this
+
+  _sortWithFn: (fn) ->
+    Array::sort.pass( this, [fn] )
 
   reverse: ->
     return this if @length < 2

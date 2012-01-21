@@ -239,11 +239,13 @@ describe "Rickshaw.List", ->
       @todoList.push( @megaTodo1, @megaTodo2 )
       @todoList.splice( 1, 2 )
       expect( removeEvent.arguments ).toEqualArray( [@todoList, [@todo2, @megaTodo1], 1] )
+      expect( removeEvent.timesFired ).toBe( 1 )
 
     it "fires add events", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.splice( 1, 0, @megaTodo1, @megaTodo2 )
       expect( addEvent.arguments ).toEqualArray( [@todoList, [@megaTodo1, @megaTodo2], 1] )
+      expect( addEvent.timesFired ).toBe( 1 )
 
     it "fires both events", ->
       # TODO spec order of event firing: "remove" then "add"
@@ -262,16 +264,63 @@ describe "Rickshaw.List", ->
       @todoList = new @TodoList @todo1, @todo2
 
     it "bubbles change events", ->
-      # TODO
+      changeEvent = new EventCapture @todoList, "change"
+      @todo1.set "rad", true
+      expect( changeEvent.arguments ).toEqualArray( [@todoList, @todo1, ["rad"]] )
+      expect( changeEvent.timesFired ).toBe( 1 )
 
     it "stops bubbling events when removed", ->
-      # TODO
+      changeEvent = new EventCapture @todoList, "change"
+      @todoList.erase @todo1
+      @todo1.set "rad", true
+      expect( changeEvent.timesFired ).toBe( 0 )
 
-    it "fires events only once when model is in list multiple times"
-      # TODO
+    it "fires events only once when model is in list multiple times", ->
+      changeEvent = new EventCapture @todoList, "change"
+      @todoList.push @todo1
+      @todo1.set "rad", true
+      expect( changeEvent.timesFired ).toBe( 1 )
 
   # Sorting
   # -------
 
-  describe "sorting", ->
-    # TODO
+  describe "#sort", ->
+    beforeEach ->
+      @todoList = new @TodoList( @todo1, @todo2, @megaTodo1 )
+      @todo1.set( "rad", 1 )
+      @todo2.set( "rad", 0 )
+      @megaTodo1.set( "rad", 2 )
+
+    it "sorts with a function", ->
+      result = @todoList.sort (a, b) ->
+        Array._compare( a.get( "rad" ), b.get( "rad" ) )
+      expect( result ).toBe( @todoList )
+      expect( @todoList ).toEqualArray( [@todo2, @todo1, @megaTodo1] )
+
+    it "sorts ascending with a model property", ->
+      expect( @todoList.sort( "rad", "ascending" ) ).toBe( @todoList )
+      expect( @todoList ).toEqualArray( [@todo2, @todo1, @megaTodo1] )
+
+    it "sorts descending with a model property", ->
+      expect( @todoList.sort( "rad", "descending" ) ).toBe( @todoList )
+      expect( @todoList ).toEqualArray( [@megaTodo1, @todo1, @todo2] )
+
+    it "fires the sort event", ->
+      sortEvent = new EventCapture @todoList, "sort"
+      @todoList.sort( "rad" )
+      expect( sortEvent.timesFired ).toBe( 1 )
+      expect( sortEvent.arguments ).toEqualArray( [@todoList] )
+
+    it "doesn't fire the sort event if the order didn't change", ->
+      sortEvent = new EventCapture @todoList, "sort"
+      @todoList.sort( "rad" )
+      @todoList.sort( "rad" )
+      expect( sortEvent.timesFired ).toBe( 1 )
+
+  describe "#reverse", ->
+    it "reverses the contents", ->
+      
+    it "fires the sort event", ->
+      
+    it "doesn't fire anything for lists with 0 or 1 elements", ->
+      

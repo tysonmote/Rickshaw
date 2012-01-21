@@ -265,14 +265,13 @@
     Extends: Array,
     Implements: [Events],
     modelClass: Rickshaw.Model,
-    models: [],
     initialize: function() {
       Rickshaw.register(this);
       if (arguments.length > 0) this.push.apply(this, arguments);
       return this;
     },
     uuids: function() {
-      return this.models.mapProperty("uuid");
+      return this.mapProperty("_uuid");
     },
     push: function() {
       var models, result;
@@ -387,14 +386,34 @@
       model.removeEvent("change", this._modelChanged);
       return model.removeEvent("delete", this._modelDeleted);
     },
-    sort: function(fn) {
+    sort: function(fnOrProp, direction) {
       var endOrder, startOrder;
+      if (direction == null) direction = "ascending";
       startOrder = this.uuids();
-      this.parent(fn);
-      endOrder = this.uuids();
-      if (!Array._equal(startOrder, endOrder)) {
-        return this.fireEvent("sort", [this]);
+      if (typeof fnOrProp === "function") {
+        this.parent(fnOrProp);
+      } else if (typeof fnOrProp === "string") {
+        if (direction === "descending") {
+          this.parent(function(a, b) {
+            return Array._compare(b.get(fnOrProp), a.get(fnOrProp));
+          });
+        } else {
+          this.parent(function(a, b) {
+            return Array._compare(a.get(fnOrProp), b.get(fnOrProp));
+          });
+        }
+      } else {
+        throw {
+          name: "ArgumentError",
+          message: "You must pass a model property as a string or a sort function."
+        };
       }
+      endOrder = this.uuids();
+      if (!Array._equal(startOrder, endOrder)) this.fireEvent("sort", [this]);
+      return this;
+    },
+    _sortWithFn: function(fn) {
+      return Array.prototype.sort.pass(this, [fn]);
     },
     reverse: function() {
       if (this.length < 2) return this;
