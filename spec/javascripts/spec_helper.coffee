@@ -4,6 +4,9 @@ window.setupCustomMatchers = ->
     # (which is false in JavaScript).
     toEqualArray: (expected) ->
       Array._equal( this.actual, expected )
+
+    toBeInstanceOf: (expected) ->
+      instanceOf( this.actual, expected )
   }
 
 class window.EventCapture
