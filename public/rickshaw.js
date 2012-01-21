@@ -289,23 +289,22 @@
       return result;
     },
     include: function(model) {
-      var models, startingLength;
-      startingLength = this.length;
-      models = this._prepareAddArgs(model);
-      Array.prototype.include.apply(this, models);
-      if (startingLength !== this.length) {
-        this.fireEvent("add", [this, models, "beginning"]);
-      }
+      if (!this.contains(model)) this.push(model);
       return this;
     },
     combine: function(models) {
-      var newModels, startingLength;
-      startingLength = this.length;
+      var addedModels, model, _i, _len;
       models = this._prepareAddArgs(models);
-      Array.prototype.combine.apply(this, [models]);
-      if (startingLength !== this.length) {
-        newModels = this.slice(startingLength);
-        this.fireEvent("add", [this, newModels, "end"]);
+      addedModels = [];
+      for (_i = 0, _len = models.length; _i < _len; _i++) {
+        model = models[_i];
+        if (!this.contains(model)) {
+          Array.prototype.push.apply(this, [model]);
+          addedModels.push(model);
+        }
+      }
+      if (addedModels.length > 0) {
+        this.fireEvent("add", [this, addedModels, "end"]);
       }
       return this;
     },

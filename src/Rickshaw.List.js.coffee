@@ -67,19 +67,18 @@ Rickshaw._List = new Class({
     return result
 
   include: (model) ->
-    startingLength = @length
-    models = this._prepareAddArgs( model )
-    Array::include.apply( this, models )
-    this.fireEvent( "add", [this, models, "beginning"] ) if startingLength != @length
+    this.push( model ) unless this.contains( model )
     return this
 
   combine: (models) ->
-    startingLength = @length
     models = this._prepareAddArgs( models )
-    Array::combine.apply( this, [models] )
-    if startingLength != @length
-      newModels = this.slice( startingLength )
-      this.fireEvent( "add", [this, newModels, "end"] )
+    addedModels = []
+    for model in models
+      unless this.contains( model )
+        Array::push.apply( this, [model] )
+        addedModels.push model
+    if addedModels.length > 0
+      this.fireEvent( "add", [this, addedModels, "end"] )
     return this
 
   # Returns flat array of Model instances, pre-attached to this List.
