@@ -54,7 +54,7 @@ describe "Rickshaw.Model", ->
 
     it "can have default values", ->
       expect( @todo.get( "rad" ) ).toBe( true )
-      expect( @todo.get( "neat" ) ).toEqual( "yes" # as functions )
+      expect( @todo.get( "neat" ) ).toEqual( "yes" ) # as functions
 
     it "can have custom getters", ->
       expect( @todo.get( "time" ) ).toEqual( "Today" )
