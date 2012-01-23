@@ -1,13 +1,43 @@
 Rickshaw
 ========
 
-Powerful client-side MVC framework based on MooTools for powerful OOP / MVC
-and Handlebars for awesome templating.
+Rickshaw is small but full-featured client-side MVC framework using (and adhering to the idioms of)
+MooTools for models and controllers and Handlebars for templating (views).
+
+Here is a brief to-do list example, as is required by law:
+
+**Model and List**
+
+    Todo = new Rickshaw.Model()
+
+General Philosophy
+------------------
+
+MooTools is great and boilerplate is bad.
+
+To do
+-----
+
+(Roughly in order of importance)
+
+* Specs for:
+  * Controller
+  * ListController
+  * Metamorph extensions
+  * Handlebars extensions
+* Make ListController re-rendering more efficient
+  * Pushing, unshifting, shifting, popping
+  * Sorting, reversing
+* Some sort of persistance backend
+  * RESTful, WebSockets, LocalStorage, etc.
+* Form bindings
+* Better model change bindings
+  * Ember.js-style might be overly ambitious, but it's worth investigation
 
 Specs
 -----
 
-If you want to run the specs headlessly (warning: qt is pretty hefty):
+If you want to run the specs headlessly (warning: qt is fairly hefty):
 
     brew update
     brew install qt
@@ -22,15 +52,6 @@ Or if you don't want / need to run them headlessly:
 
 (`.evergreen` simply has the config for headless specs. Removing that file will tell `evergreen`
 to default to Selenium.)
-
-To do
------
-
-(Roughly in order of importance)
-
-* Get a spec suite up and running
-* Make ListController rendering more efficient
-* Add the persistence framework back
 
 Examples
 --------
