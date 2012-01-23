@@ -5,7 +5,6 @@
   window.Rickshaw = {
     version: "0.0.1",
     Templates: {},
-    Persistence: {},
     _objects: {},
     templatePrefix: "Rickshaw",
     templateRegex: /^Rickshaw-(\w+)-template$/,
