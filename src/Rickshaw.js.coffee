@@ -62,12 +62,15 @@ document.addEvent( "domready", Rickshaw.refreshTemplates )
 # ==============
 
 Rickshaw.Utils = {
+  # Deep clone the given object / array. Doesn't clone Element instances.
   clone: (item) ->
     switch typeOf( item )
       when "array" then return item.clone()
       when "object" then return Object.clone( item )
       else return item
 
+  # Return true if the two given objects have equivalent values. Handles Arrays
+  # and Objects.
   equal: (a, b) ->
     aType = typeOf( a )
     return false unless aType is typeOf( b )
@@ -78,6 +81,8 @@ Rickshaw.Utils = {
     else
       a == b
 
+  # Return a Class constructor function that uses the given Class as a base
+  # class. We use this so that we can use nested inheritance.
   subclassConstructor: (baseClass) ->
     return( (params) ->
       new Class( Object.merge( { Extends: baseClass }, params ) )
