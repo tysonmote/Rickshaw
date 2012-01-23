@@ -9,7 +9,6 @@ window.Rickshaw = {
   version: "0.0.1"
 
   Templates: {}
-  Persistence: {}
 
   # Contains every single Rickshaw object, keyed by uuid. This means we keep
   # at least one reference to every single object, regardless if anything else
