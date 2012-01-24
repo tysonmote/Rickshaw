@@ -7,8 +7,8 @@ coffee \
   ./src/Rickshaw.js.coffee \
   ./src/Rickshaw.Model.js.coffee \
   ./src/Rickshaw.List.js.coffee \
-  ./src/Rickshaw.Persistence.js.coffee \
   ./src/Rickshaw.Controllers.js.coffee \
+  ./src/Rickshaw.Handlebars.js.coffee \
   ./src/Rickshaw.Metamorph.js.coffee \
 
 echo "Rickshaw build successful!"
