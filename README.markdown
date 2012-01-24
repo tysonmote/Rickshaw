@@ -75,7 +75,7 @@ though Rickshaw will let you, if you want to just to feel alive).
 That's it.
 
 [mootools]: http://mootools.net
-[handlebars]: http://TODO.com
+[handlebars]: http://handlebarsjs.com/
 
 General Philosophy
 ------------------
