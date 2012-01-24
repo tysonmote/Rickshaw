@@ -98,6 +98,11 @@ To do
   * RESTful, WebSockets, LocalStorage, etc.
   * Should make it easy to define your own and subclass them, especially for
     WebSockets if you want to implement your own message protocol.
+* Auto-updating selector bindings
+  * If I add an event on "div.rad" and that "rad" class is bound, the events
+    should automatically be removed. I think the solution here is to wrap all
+    added events with a function that re-checks for selector match before
+    firing.
 * Form bindings
   * You should be able to make create / edit forms super easily and never
     have to worry about maintaining bindings / events
