@@ -105,6 +105,12 @@ To do
   * Ember.js-style might be overly ambitious / heavy, but it's worth
     investigation
 
+Other random crap:
+
+    model.toggle( "done" )
+    # sugar for:
+    model.set( "done", !model.get( "done" ) )
+
 Specs
 -----
 
@@ -123,76 +129,6 @@ Or if you don't want / need to run them headlessly:
 
 (`.evergreen` simply has the config for headless specs. Removing that file
 will tell `evergreen` to default to Selenium.)
-
-Examples
---------
-
-### RESTful persistence ###
-
-(Note: this is currently broken)
-
-    var Message = new Class({
-      Extends: Rickshaw.Model,
-      Implements: Rickshaw.Persistence.RestfulJSON,
-    
-      store: {
-        url: "/messages/{id}"
-      }
-    });
-
-### Custom model property accessors ###
-
-    var User = new Rickshaw.Model({
-      getName: function() {
-        return this.data.firstName + " " + this.data.lastName;
-      },
-
-      setName: function(value) {
-        var names = value.split(" ");
-        this.set("firstName", names[0]);
-        this.set("lastName", names[1]);
-      }
-    }
-
-### Collections ###
-
-Collections are Array subclasses that have lots of additional event-firing
-hotness.
-
-    var Messages = new Rickshaw.Collection({
-      modelClass: Message
-    });
-    
-    var myMessages = new Messages(msgA, msgB, msgC);
-    myMessages.push(msgD);
-    # onAdd event is fired.
-    myMessages.set({ state: "read", flagged: false });
-    # all messages are updated with the above properties.
-
-### Controllers ###
-
-Template:
-
-    <div class="message">Dear {{name}}, {{content}}</div>
-    {{ tag "button.delete[text='Delete']" }}
-    {{ subController replyForm "div.reply-form" }}
-
-Controller:
-
-    var MessageController = new Rickshaw.Controller({
-      templateName: "message",
-
-      initialize: function(message) {
-        this.replyForm = new MessageReplyController(message);
-        this.parent(message);
-      },
-
-      events: {
-        ".delete": function(e) {
-          e.preventDefault();
-          this.model.delete();
-        }
-    });
 
 Contributors
 ------------
