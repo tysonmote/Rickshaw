@@ -3,6 +3,9 @@ beforeEach ->
   if window.Rickshaw
     Rickshaw._objects = {}
 
+window.rickshawTemplate = (name, template) ->
+  Rickshaw.Templates[name] = Handlebars.compile( template )
+
 window.setupCustomMatchers = ->
   this.addMatchers {
     # Recurses into nested arrays and objects instead of just doing [] == []

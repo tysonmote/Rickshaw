@@ -465,6 +465,7 @@
       this._metamorphs = [];
       this._deferredSubControllers = [];
       this.events = Object.clone(this.events);
+      this.rendered = false;
       if (element) this.renderTo(element);
       return this;
     },
@@ -478,13 +479,14 @@
     render: function() {
       var html,
         _this = this;
-      if (!(this._metamorphs.length > 0)) return;
+      if (!(this._metamorphs.length > 0)) return false;
       this.fireEvent("beforeRender", this);
       html = this._html();
       this._metamorphs.each(function(morph) {
         return _this._renderMetamorph(morph, html, false);
       });
-      return this._finalizeRender();
+      this._finalizeRender();
+      return true;
     },
     _finalizeRender: function() {
       this._renderSubControllers();
@@ -497,6 +499,7 @@
       morph.set("html", html);
       this._attachEvents(morph);
       this._renderSubControllers(morph);
+      this.rendered = true;
       if (fireEvent) return this.fireEvent("afterRender", this);
     },
     _html: function() {
@@ -560,29 +563,23 @@
       if (this.model) this._detachModelEvents(this.model);
       this.model = model;
       this._attachModelEvents(this.model);
-      if (render) return this.render();
+      if (render) this.render();
+      return this;
     },
     _attachModelEvents: function(model) {
       return model.addEvents({
-        change: this._modelChanged,
-        "delete": this._modelsDeleted
+        change: this._modelChanged
       });
     },
     _detachModelEvents: function(model) {
       return model.removeEvents({
-        change: this._modelChanged,
-        "delete": this._modelsDeleted
+        change: this._modelChanged
       });
     },
     _modelChanged: function(model, changedProperties) {
-      return this.render();
+      if (this.rendered) return this.render();
     },
-    _modelsDeleted: function() {
-      return this._metamorphs.each(function(morph) {
-        return morph.set("html", "");
-      });
-    },
-    Binds: ["_modelChanged", "_modelsDeleted"]
+    Binds: ["_modelChanged"]
   });
 
   Rickshaw.Controller = Rickshaw.Utils.subclassConstructor(Rickshaw._Controller);
@@ -647,6 +644,35 @@
 
   Rickshaw.ListController = Rickshaw.Utils.subclassConstructor(Rickshaw._ListController);
 
+  Handlebars.registerHelper("subController", function(controller, options) {
+    if (arguments.length !== 2) {
+      throw {
+        name: "ArgumentError",
+        message: "You must supply a controller instance to \"subController\"."
+      };
+    }
+    return new Handlebars.SafeString(this._setupSubcontroller(controller));
+  });
+
+  Handlebars.registerHelper("tag", function(tag, options) {
+    return new Handlebars.SafeString((new Element(tag)).outerHTML);
+  });
+
+  Handlebars.registerHelper("list", function(options) {
+    var html,
+      _this = this;
+    if (typeOf(this.collection) !== "array") {
+      throw {
+        name: "HandlebarsError",
+        message: "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
+      };
+    }
+    html = this.collection.map(function(model) {
+      return _this._setupSubcontrollerWithModel(model);
+    });
+    return new Handlebars.SafeString(html.join("\n"));
+  });
+
   Rickshaw.Metamorph = new Class({
     initialize: function(html) {
       if (html == null) html = "";
@@ -657,12 +683,12 @@
     inject: function(element) {
       return this._morph.appendTo($(element));
     },
-    placeholderHTML: function() {
-      return this._morph.startTag() + this._morph.endTag();
-    },
     set: function(prop, value) {
       if (prop !== "html") {
-        raise("Don't know how to set \"" + prop + "\" on Rickshaw.Metamorphs");
+        raise({
+          name: "ArgumentError",
+          message: "Don't know how to set \"" + prop + "\" on Rickshaw.Metamorphs"
+        });
       }
       return this._morph.html(value);
     },
@@ -673,10 +699,28 @@
       return this.__startElement || (this.__startElement = $(this._morph.start));
     },
     rootElements: function() {
-      var start;
-      start = this._startElement();
-      if (!start) raise("This Metamorph hasn't been inserted into the DOM yet.");
-      return start.getAllNext("*:not(script[type='text/x-placeholder'])");
+      var el, idMatch, nextElements, rootElements, seekEndId, selfIndex, start;
+      if (!(start = this._startElement())) {
+        raise({
+          name: "MetamorphNotRendered",
+          message: "This Metamorph hasn't been inserted into the DOM yet."
+        });
+      }
+      rootElements = new Elements();
+      selfIndex = parseInt(this._morph.start.match(/\d/));
+      nextElements = start.getAllNext("*:not(script#metamorph-" + selfIndex + "-end)");
+      while (el = nextElements.shift()) {
+        if (el.tagName === "SCRIPT" && el.id && (idMatch = el.id.match(/^metamorph-(\d+)-start/))) {
+          seekEndId = "metamorph-" + idMatch[1] + "-end";
+          el = nextElements.shift();
+          while (!(el.tagName === "SCRIPT" && el.id === seekEndId)) {
+            el = nextElements.shift();
+          }
+        } else {
+          rootElements.push(el);
+        }
+      }
+      return rootElements;
     },
     getElements: function(selector) {
       var matches, rootElements;

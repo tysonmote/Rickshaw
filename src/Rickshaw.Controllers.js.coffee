@@ -24,7 +24,6 @@ Rickshaw._BaseController = new Class({
 
   # Params:
   #
-  #   * `model` (Rickshaw.Model) - Associated model.
   #   * `element` (Element, Elements, String, null) - DOM element, elements,
   #     or element id that this controller's rendered template HTML is rendered
   #     to. If this is null, it can be set to an Element or Elements later (as
@@ -34,6 +33,7 @@ Rickshaw._BaseController = new Class({
     @_metamorphs = [] # All render destination Metamorphs
     @_deferredSubControllers = [] # Delayed render subControllers
     @events = Object.clone( @events )
+    @rendered = false
     this.renderTo( element ) if element
     return this
 
@@ -50,13 +50,14 @@ Rickshaw._BaseController = new Class({
 
   # Re-render all metamorphs.
   render: ->
-    return unless @_metamorphs.length > 0
+    return false unless @_metamorphs.length > 0
     this.fireEvent( "beforeRender", this )
     html = this._html()
     @_metamorphs.each( (morph) =>
       this._renderMetamorph( morph, html, false )
     )
     this._finalizeRender()
+    return true
 
   _finalizeRender: ->
     this._renderSubControllers()
@@ -68,6 +69,7 @@ Rickshaw._BaseController = new Class({
     morph.set( "html", html )
     this._attachEvents( morph )
     this._renderSubControllers( morph ) # TODO: move to onAfterRender
+    @rendered = true
     this.fireEvent( "afterRender", this ) if fireEvent
 
   _html: ->
@@ -175,18 +177,17 @@ Rickshaw._Controller = new Class({
     @model = model
     this._attachModelEvents( @model )
     this.render() if render
+    return this
 
   # Hook up the model's events.
   _attachModelEvents: (model) ->
     model.addEvents(
       change: this._modelChanged
-      delete: this._modelsDeleted
     )
 
   _detachModelEvents: (model) ->
     model.removeEvents(
       change: this._modelChanged
-      delete: this._modelsDeleted
     )
 
   # Hooks
@@ -194,14 +195,11 @@ Rickshaw._Controller = new Class({
 
   # bound
   _modelChanged: (model, changedProperties) ->
-    this.render()
+    this.render() if @rendered
 
-  # bound
-  # TODO: Allow custom FX.
-  _modelsDeleted: ->
-    @_metamorphs.each( (morph) -> morph.set( "html", "" ) )
+  # TODO: Re-implement model delete / destroy events.
 
-  Binds: ["_modelChanged", "_modelsDeleted"]
+  Binds: ["_modelChanged"]
 
 })
 
