@@ -61,6 +61,7 @@ though Rickshaw will let you, if you want to just to feel alive).
 
     <h1>Todos:</h1>
     <ul>{{ list }}</ul>
+    <input id="new-todo" type="text" />
 
 "todo"
 
