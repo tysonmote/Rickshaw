@@ -31,10 +31,10 @@ automatically.
 
     TodoController = new Rickshaw.Controller(
       Template: "todo"
+      DeferToModel: ["text"]
       Events:
         li: click: -> this.toggle "done"
       klass: -> if @model.isDone() then "done" else ""
-      text: -> @model.get "text"
     )
     
     TodoListController = new Rickshaw.ListController(

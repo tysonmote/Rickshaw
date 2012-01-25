@@ -159,6 +159,10 @@ Rickshaw._Controller = new Class({
   # Attached model instance. This is set when this controller is created.
   model: null
 
+  # An array of model property strings that will be created as simple defer
+  # methods on this controller that return the value of the property.
+  DeferToModel: []
+
   # Params:
   #
   #   * `model` (Rickshaw.Model) - Associated model.
@@ -173,11 +177,16 @@ Rickshaw._Controller = new Class({
   # Sets this controller's associated model instance and re-renders all
   # Metamorphs.
   setModel: (model, render=true) ->
-    this._detachModelEvents( @model ) if @model
+    this._detachModelEvents @model if @model
     @model = model
-    this._attachModelEvents( @model )
+    this._setupModelDefers @model
+    this._attachModelEvents @model
     this.render() if render
     return this
+
+  _setupModelDefers: (model) ->
+    @DeferToModel.each (property) =>
+      this[property] = -> model.get property
 
   # Hook up the model's events.
   _attachModelEvents: (model) ->

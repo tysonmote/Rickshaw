@@ -49,17 +49,15 @@ describe "Rickshaw.Controller", ->
       @todo.set sweet: true
       expect( @todoController._modelChanged ).not.toHaveBeenCalled()
 
-  describe "dever to model", ->
+  describe "defer to model", ->
     beforeEach ->
       @Todo = new Rickshaw.Model()
-      @todo = new @Todo {num: "one"}
-      @TodoController = new Rickshaw.Controller({
-        Template: "todo"
-      })
-      @todoController = new @TodoController()
+      @todo = new @Todo num: "one"
+      @TodoController = new Rickshaw.Controller DeferToModel: ["num"]
+      @todoController = new @TodoController @todo
 
     it "should be able to defer methods to the model", ->
-      
+      expect( @todoController.num() ).toEqual( "one" )
 
   describe "rendering", ->
     beforeEach ->

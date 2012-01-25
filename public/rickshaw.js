@@ -555,6 +555,7 @@
   Rickshaw._Controller = new Class({
     Extends: Rickshaw._BaseController,
     model: null,
+    DeferToModel: [],
     initialize: function(model, element) {
       if (model == null) model = null;
       if (element == null) element = null;
@@ -565,9 +566,18 @@
       if (render == null) render = true;
       if (this.model) this._detachModelEvents(this.model);
       this.model = model;
+      this._setupModelDefers(this.model);
       this._attachModelEvents(this.model);
       if (render) this.render();
       return this;
+    },
+    _setupModelDefers: function(model) {
+      var _this = this;
+      return this.DeferToModel.each(function(property) {
+        return _this[property] = function() {
+          return model.get(property);
+        };
+      });
     },
     _attachModelEvents: function(model) {
       return model.addEvents({
