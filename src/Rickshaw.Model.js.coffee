@@ -144,6 +144,11 @@ Rickshaw._Model = new Class({
 
     return this
 
+  # Toggle the value of the property (as a boolean). Undefined properties
+  # will be `true` after being toggled a first time.
+  toggle: (property) ->
+    this.set property, !this.get( property )
+
   # Update the value for the given property only if it is different. Returns
   # true if the property was changed and false otherwise.
   _set: (property, value) ->

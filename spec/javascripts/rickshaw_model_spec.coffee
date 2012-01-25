@@ -122,12 +122,12 @@ describe "Rickshaw.Model", ->
     it "tracks dirty states of arrays ", ->
       @todo = new @Todo({ blob: [1, 2] })
       @todo.set "blob", [1, 2]
-      expect( @todo.dirtyProperties ).toEqual([])
+      expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "blob", [1, 3]
-      expect( @todo.dirtyProperties ).toEqual(["blob"])
+      expect( @todo.dirtyProperties ).toEqual( ["blob"] )
       # And back
       @todo.set "blob", [1, 2]
-      expect( @todo.dirtyProperties ).toEqual([])
+      expect( @todo.dirtyProperties ).toEqual( [] )
 
     it "tracks dirty states of objects", ->
       @todo = new @Todo({ blob: {a: [1, 2]} })
@@ -166,3 +166,27 @@ describe "Rickshaw.Model", ->
       expect( changedEvent ).toEqual( [@todo, ["blob", "other"]] )
       expect( @todo.eventFired ).toEqual( "yep" )
       expect( @todo.propertyEventFired ).toEqual( "yep" )
+
+    describe "#toggle()", ->
+      beforeEach setupCustomMatchers
+      beforeEach ->
+        @Todo = new Rickshaw.Model {
+          getDone: -> @data.done == "true"
+          setDone: (value) -> return "#{value}"
+        }
+        @todo = new @Todo()
+
+      it "toggles the value and uses custom getters / setters", ->
+        expect( @todo.toggle "done" ).toBe( @todo )
+        expect( @todo.get "done" ).toBe( true )
+        expect( @todo.data.done ).toEqual( "true" )
+
+      it "marks value as dirty", ->
+        @todo.toggle "done"
+        expect( @todo.dirtyProperties ).toEqual( ["done"] )
+
+      it "fires change events", ->
+        changeEvent = new EventCapture @todo, "change"
+        @todo.toggle "done"
+        expect( changeEvent.timesFired ).toBe( 1 )
+        expect( changeEvent.arguments ).toEqualArray( [@todo, ["done"]] )

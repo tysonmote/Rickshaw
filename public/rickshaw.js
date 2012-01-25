@@ -237,6 +237,9 @@
       }
       return this;
     },
+    toggle: function(property) {
+      return this.set(property, !this.get(property));
+    },
     _set: function(property, value) {
       var customSetter, newValue;
       newValue = Rickshaw.Utils.clone(value);

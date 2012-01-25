@@ -32,7 +32,7 @@ automatically.
     TodoController = new Rickshaw.Controller(
       Template: "todo"
       Events:
-        li: click: -> this.set "done", !this.get( "done" )
+        li: click: -> this.toggle "done"
       klass: -> if @model.isDone() then "done" else ""
       text: -> @model.get "text"
     )
@@ -107,12 +107,6 @@ To do
 * Better model change bindings
   * Ember.js-style might be overly ambitious / heavy, but it's worth
     investigation
-
-Other random crap:
-
-    model.toggle( "done" )
-    # sugar for:
-    model.set( "done", !model.get( "done" ) )
 
 Specs
 -----
