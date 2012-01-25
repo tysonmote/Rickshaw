@@ -40,7 +40,7 @@ Rickshaw.Metamorph = new Class({
       raise name: "MetamorphNotRendered", message: "This Metamorph hasn't been inserted into the DOM yet."
 
     rootElements = new Elements()
-    selfIndex = parseInt @_morph.start.match( /\d/ )
+    selfIndex = parseInt @_morph.start.match( /\d+/ )
     nextElements = start.getAllNext "*:not(script#metamorph-#{selfIndex}-end)"
 
     while el = nextElements.shift()

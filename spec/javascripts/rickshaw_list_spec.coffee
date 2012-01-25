@@ -9,10 +9,10 @@ describe "Rickshaw.List", ->
     @Todo = Todo = new Rickshaw.Model()
     @MegaTodo = MegaTodo = new Rickshaw.Model()
     @TodoList = new Rickshaw.List {
-      modelClass: Todo
+      ModelClass: Todo
     }
     @CombinedTodoList = new Rickshaw.List {
-      modelClass: (data) ->
+      ModelClass: (data) ->
         if data.isMegaTodo then MegaTodo else Todo
     }
     @todo1 = new @Todo {num: "one"}

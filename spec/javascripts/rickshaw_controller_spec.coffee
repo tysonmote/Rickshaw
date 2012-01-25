@@ -11,7 +11,7 @@ describe "Rickshaw.Controller", ->
       @Todo = new Rickshaw.Model()
       @todo = new @Todo {num: "one"}
       @TodoController = new Rickshaw.Controller({
-        templateName: "todo"
+        Template: "todo"
       })
 
     it "has an associated model", ->
@@ -30,7 +30,7 @@ describe "Rickshaw.Controller", ->
       @Todo = new Rickshaw.Model()
       @todo = new @Todo {num: "one"}
       @TodoController = new Rickshaw.Controller({
-        templateName: "todo"
+        Template: "todo"
       })
       @todoController = new @TodoController()
       # TODO: This is so awful. God.
@@ -49,15 +49,27 @@ describe "Rickshaw.Controller", ->
       @todo.set sweet: true
       expect( @todoController._modelChanged ).not.toHaveBeenCalled()
 
+  describe "dever to model", ->
+    beforeEach ->
+      @Todo = new Rickshaw.Model()
+      @todo = new @Todo {num: "one"}
+      @TodoController = new Rickshaw.Controller({
+        Template: "todo"
+      })
+      @todoController = new @TodoController()
+
+    it "should be able to defer methods to the model", ->
+      
+
   describe "rendering", ->
     beforeEach ->
       @Todo = new Rickshaw.Model()
       @todo = new @Todo {text: "do stuff"}
       @TodoController = new Rickshaw.Controller({
-        templateName: "todo"
+        Template: "todo"
         klass: -> "neato"
         text: -> "TODO: #{@model.get('text')}"
-        events:
+        Events:
           p:
             click: ->
               @todoClickArguments = Array.from arguments

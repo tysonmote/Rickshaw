@@ -28,7 +28,7 @@ Rickshaw._List = new Class({
   # Default model class used when data (rather than model instances) are
   # given. If this is a function, it'll be passed the model data and it
   # should return the correct model class for the data.
-  modelClass: Rickshaw.Model
+  ModelClass: Rickshaw.Model
 
   # Setup
   # -----
@@ -82,7 +82,7 @@ Rickshaw._List = new Class({
     models.each( this._preattachModel )
     return models
 
-  # Hook up the model's events to this List's hooks only if it hasn't
+  # Hook up the model's Events to this List's hooks only if it hasn't
   # been hooked up already (aka exists in this List).
   _preattachModel: (model) ->
     return false if this.contains( model )
@@ -204,11 +204,11 @@ Rickshaw._List = new Class({
     if Rickshaw.Utils.isModelInstance( data )
       return data
     else
-      if typeOf( @modelClass ) is "function"
-        klass = @modelClass( data )
+      if typeOf( @ModelClass ) is "function"
+        klass = @ModelClass( data )
         return new klass( data )
       else
-        return new @modelClass( data )
+        return new @ModelClass( data )
 
   Binds: ["_modelChanged", "_modelDeleted", "_preattachModel", "_detachModel"]
 })

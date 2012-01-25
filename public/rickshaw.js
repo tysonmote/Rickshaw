@@ -158,7 +158,7 @@
 
   Rickshaw._Model = new Class({
     Implements: [Events],
-    defaults: {},
+    Defaults: {},
     initialize: function(data) {
       if (data == null) data = {};
       Rickshaw.register(this);
@@ -168,8 +168,8 @@
     },
     _initData: function(data) {
       var defaults;
-      this.defaults = Object.clone(this.defaults);
-      defaults = Object.map(this.defaults, function(value, key) {
+      this.Defaults = Object.clone(this.Defaults);
+      defaults = Object.map(this.Defaults, function(value, key) {
         if (typeof value === "function") {
           return value.apply(this, [this]);
         } else {
@@ -263,7 +263,7 @@
   Rickshaw._List = new Class({
     Extends: Array,
     Implements: [Events],
-    modelClass: Rickshaw.Model,
+    ModelClass: Rickshaw.Model,
     initialize: function() {
       Rickshaw.register(this);
       if (arguments.length > 0) this.push.apply(this, arguments);
@@ -441,11 +441,11 @@
       if (Rickshaw.Utils.isModelInstance(data)) {
         return data;
       } else {
-        if (typeOf(this.modelClass) === "function") {
-          klass = this.modelClass(data);
+        if (typeOf(this.ModelClass) === "function") {
+          klass = this.ModelClass(data);
           return new klass(data);
         } else {
-          return new this.modelClass(data);
+          return new this.ModelClass(data);
         }
       }
     },
@@ -456,15 +456,15 @@
 
   Rickshaw._BaseController = new Class({
     Implements: [Events],
-    templateName: "",
-    events: {},
+    Template: "",
+    Events: {},
     initialize: function(element, options) {
       if (element == null) element = null;
       if (options == null) options = {};
       Rickshaw.register(this);
       this._metamorphs = [];
       this._deferredSubControllers = [];
-      this.events = Object.clone(this.events);
+      this.Events = Object.clone(this.Events);
       this.rendered = false;
       if (element) this.renderTo(element);
       return this;
@@ -504,12 +504,12 @@
     },
     _html: function() {
       var template;
-      if (template = Rickshaw.Templates[this.templateName]) {
+      if (template = Rickshaw.Templates[this.Template]) {
         return template(this);
       } else {
         throw {
           name: "TemplateNotFound",
-          message: "Template \"" + this.templateName + "\" not found."
+          message: "Template \"" + this.Template + "\" not found."
         };
       }
     },
@@ -538,7 +538,7 @@
       var controller;
       if (this.__boundElementEvents) return this.__boundElementEvents;
       controller = this;
-      return this.__boundElementEvents || (this.__boundElementEvents = Object.map(this.events, function(events, selector) {
+      return this.__boundElementEvents || (this.__boundElementEvents = Object.map(this.Events, function(events, selector) {
         return Object.map(events, function(fn, eventName) {
           if (typeof fn === "string") fn = controller[fn];
           return function(e) {
@@ -587,7 +587,7 @@
   Rickshaw._ListController = new Class({
     Extends: Rickshaw._BaseController,
     collection: null,
-    subcontroller: null,
+    Subcontroller: null,
     initialize: function(collection, element) {
       if (collection == null) collection = null;
       if (element == null) element = null;
@@ -603,7 +603,7 @@
     },
     _setupSubcontrollerWithModel: function(model) {
       var klass;
-      klass = typeof this.subcontroller === "function" ? this.subcontroller(model) : this.subcontroller;
+      klass = typeof this.Subcontroller === "function" ? this.Subcontroller(model) : this.Subcontroller;
       return this._setupSubcontroller(new klass(model));
     },
     _attachListEvents: function() {
@@ -707,7 +707,7 @@
         });
       }
       rootElements = new Elements();
-      selfIndex = parseInt(this._morph.start.match(/\d/));
+      selfIndex = parseInt(this._morph.start.match(/\d+/));
       nextElements = start.getAllNext("*:not(script#metamorph-" + selfIndex + "-end)");
       while (el = nextElements.shift()) {
         if (el.tagName === "SCRIPT" && el.id && (idMatch = el.id.match(/^metamorph-(\d+)-start/))) {

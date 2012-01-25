@@ -61,7 +61,7 @@ Rickshaw._Model = new Class({
   #
   # Keep in mind that for new records, these default values wont be marked
   # dirty unless they are changed.
-  defaults: {}
+  Defaults: {}
 
   # Setup
   # -----
@@ -69,28 +69,26 @@ Rickshaw._Model = new Class({
   # Initialize a new model.
   initialize: (data = {}) ->
     # Setup uuid
-    Rickshaw.register( this )
-    this._initData( data )
+    Rickshaw.register this
+    this._initData data
     this._attachEvents()
     return this
 
   _initData: (data) ->
-    @defaults = Object.clone( @defaults )
-    defaults = Object.map( @defaults, (value, key) ->
-      if typeof( value ) is "function"
-        value.apply( this, [this] )
+    @Defaults = Object.clone @Defaults
+    defaults = Object.map @Defaults, (value, key) ->
+      if typeof value is "function"
+        value.apply this, [this]
       else
         value
-    )
-    @data = Object.merge( defaults, data )
-    @_previousData = Object.clone( @data )
+    @data = Object.merge defaults, data
+    @_previousData = Object.clone @data
     @dirtyProperties = []
 
   _attachEvents: ->
-    Object.each( this.__proto__, (fn, name) =>
+    Object.each this.__proto__, (fn, name) =>
       if match = name.match( /^on[A-Z][A-Za-z]+Change$/ )
-        this.addEvent( match[0], -> fn.apply( this, arguments ) )
-    )
+        this.addEvent match[0], -> fn.apply( this, arguments )
 
   # State
   # -----
@@ -110,13 +108,13 @@ Rickshaw._Model = new Class({
     if properties.length > 1
       return properties.map( (property) => this._get( property ) ).associate( properties )
     else
-      return this._get( properties[0] )
+      return this._get properties[0]
 
   _get: (property) ->
     if customGetter = this["get#{property.forceCamelCase().capitalize()}"]
-      Rickshaw.Utils.clone( customGetter.bind( this )() )
+      Rickshaw.Utils.clone customGetter.bind( this )()
     else
-      Rickshaw.Utils.clone( @data[property] )
+      Rickshaw.Utils.clone @data[property]
 
   # Setters
   # -------
@@ -135,32 +133,30 @@ Rickshaw._Model = new Class({
 
     changedProperties = []
 
-    Object.each( newData, (newValue, property) =>
-      changedProperties.push( property ) if this._set( property, newValue )
-    )
+    Object.each newData, (newValue, property) =>
+      changedProperties.push property if this._set property, newValue
 
     # Events
     if changedProperties.length > 0
-      changedProperties.each( (property) =>
-        this.fireEvent( "#{property.forceCamelCase()}Change", this )
-      )
-      this.fireEvent( "change", [this, changedProperties] )
+      changedProperties.each (property) =>
+        this.fireEvent "#{property.forceCamelCase()}Change", this
+      this.fireEvent "change", [this, changedProperties]
 
     return this
 
   # Update the value for the given property only if it is different. Returns
   # true if the property was changed and false otherwise.
   _set: (property, value) ->
-    newValue = Rickshaw.Utils.clone( value )
+    newValue = Rickshaw.Utils.clone value
     if customSetter = this["set#{property.forceCamelCase().capitalize()}"]
-      newValue = customSetter.apply( this, [newValue] )
+      newValue = customSetter.apply this, [newValue]
 
-    if Rickshaw.Utils.equal( @_previousData[property], newValue )
-      @dirtyProperties = @dirtyProperties.erase( property )
+    if Rickshaw.Utils.equal @_previousData[property], newValue
+      @dirtyProperties = @dirtyProperties.erase property
     else
-      @dirtyProperties.include( property )
+      @dirtyProperties.include property
 
-    if Rickshaw.Utils.equal( @data[property], newValue )
+    if Rickshaw.Utils.equal @data[property], newValue
       return false
     else
       @data[property] = newValue
@@ -170,4 +166,4 @@ Rickshaw._Model = new Class({
 
 })
 
-Rickshaw.Model = Rickshaw.Utils.subclassConstructor( Rickshaw._Model )
+Rickshaw.Model = Rickshaw.Utils.subclassConstructor Rickshaw._Model

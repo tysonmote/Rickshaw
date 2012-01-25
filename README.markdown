@@ -30,25 +30,23 @@ automatically.
 **Controller**
 
     TodoController = new Rickshaw.Controller(
-      templateName: "todo"
+      Template: "todo"
+      Events:
+        li: click: -> this.set "done", !this.get( "done" )
       klass: -> if @model.isDone() then "done" else ""
-      text: -> @model.get( "text" )
-      events:
-        li:
-          click: -> this.set( "done", !this.get( "done" ) )
+      text: -> @model.get "text"
     )
     
     TodoListController = new Rickshaw.ListController(
-      templateName: "todos"
-      subcontroller: TodoController
-      events:
-        "input#new-todo":
-          keydown: "newTodoKeydown"
+      Template: "todos"
+      Subcontroller: TodoController
+      Events:
+        "input#new-todo": keydown: "newTodoKeydown"
       newTodoKeydown: (e, el) ->
         if e.key == "enter"
           e.preventDefault()
-          @list.push( el.get( "value" ) )
-          el.set( "value", "" )
+          @list.push el.get( "value" )
+          el.set "value", ""
     )
 
 Rickshaw controllers are the interface between your models / lists and your

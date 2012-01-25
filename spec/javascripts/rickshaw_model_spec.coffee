@@ -34,7 +34,7 @@ describe "Rickshaw.Model", ->
   describe "#get()", ->
     beforeEach ->
       @Todo = new Rickshaw.Model {
-        defaults: { rad: true, neat: -> "yes" }
+        Defaults: { rad: true, neat: -> "yes" }
         getTime: -> @data.time.capitalize()
         getCamelcaseText: -> this.get( "text" ).forceCamelCase()
       }
@@ -79,7 +79,7 @@ describe "Rickshaw.Model", ->
   describe "#set()", ->
     beforeEach ->
       @Todo = new Rickshaw.Model {
-        defaults: { done: false }
+        Defaults: { done: false }
         setTitle: (title) -> return title.capitalize()
         setCoolCat: (value) -> return "#{value}"
       }

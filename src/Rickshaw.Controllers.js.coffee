@@ -17,10 +17,10 @@ Rickshaw._BaseController = new Class({
   # -------
 
   # Name of template used to render this controller. (Required)
-  templateName: ""
+  Template: ""
 
   # Auto-attached element events. Keyed by element selector. (Optional)
-  events: {}
+  Events: {}
 
   # Params:
   #
@@ -32,7 +32,7 @@ Rickshaw._BaseController = new Class({
     Rickshaw.register( this )
     @_metamorphs = [] # All render destination Metamorphs
     @_deferredSubControllers = [] # Delayed render subControllers
-    @events = Object.clone( @events )
+    @Events = Object.clone( @Events )
     @rendered = false
     this.renderTo( element ) if element
     return this
@@ -73,10 +73,10 @@ Rickshaw._BaseController = new Class({
     this.fireEvent( "afterRender", this ) if fireEvent
 
   _html: ->
-    if template = Rickshaw.Templates[@templateName]
+    if template = Rickshaw.Templates[@Template]
       return template( this )
     else
-      throw name: "TemplateNotFound", message: "Template \"#{@templateName}\" not found."
+      throw name: "TemplateNotFound", message: "Template \"#{@Template}\" not found."
 
   # Subcontrollers
   # --------------
@@ -105,7 +105,7 @@ Rickshaw._BaseController = new Class({
   _boundElementEvents: ->
     return @__boundElementEvents if @__boundElementEvents
     controller = this
-    @__boundElementEvents ||= Object.map( @events, (events, selector) ->
+    @__boundElementEvents ||= Object.map( @Events, (events, selector) ->
       Object.map( events, (fn, eventName) ->
         fn = controller[fn] if typeof fn is "string"
         (e) -> fn.apply( controller, [e, this])
@@ -131,7 +131,7 @@ Rickshaw._BaseController = new Class({
 #     
 #     # Controller
 #     UserGreetingController = new Rickshaw.Controller({
-#       templateName: "user/greeting"
+#       Template: "user/greeting"
 #       fullName: -> "#{@model.firstName} #{@model.firstName}"
 #     })
 #     controller = new UserRowController( user )
@@ -144,7 +144,7 @@ Rickshaw._BaseController = new Class({
 #     
 #     # Controller
 #     UserGreetingController = new Rickshaw.Controller({
-#       templateName: "user/greeting"
+#       Template: "user/greeting"
 #       initialize: (user) ->
 #         @logoutFormController = new LogoutFormController( user )
 #         this.parent( user )
@@ -221,7 +221,7 @@ Rickshaw._ListController = new Class({
 
   # Either a Rickshaw.Controller class or a function that takes a model
   # instance and returns the correct controller class for that model.
-  subcontroller: null
+  Subcontroller: null
 
   # Params:
   #
@@ -249,10 +249,10 @@ Rickshaw._ListController = new Class({
   # Creates subcontroller for the model and hooks it all up.
   # Returns placeholder html.
   _setupSubcontrollerWithModel: (model) ->
-    klass = if typeof @subcontroller is "function"
-      this.subcontroller( model )
+    klass = if typeof @Subcontroller is "function"
+      this.Subcontroller( model )
     else
-      this.subcontroller
+      this.Subcontroller
     return this._setupSubcontroller( new klass( model ) )
 
   # Events
