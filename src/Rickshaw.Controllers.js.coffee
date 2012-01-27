@@ -79,7 +79,7 @@ Rickshaw._BaseController = new Class({
     if template = Rickshaw.Templates[@Template]
       return template( this )
     else
-      throw name: "TemplateNotFound", message: "Template \"#{@Template}\" not found."
+      throw new Error "Template \"#{@Template}\" not found."
 
   # Subcontrollers
   # --------------

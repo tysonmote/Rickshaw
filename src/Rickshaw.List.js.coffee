@@ -110,7 +110,7 @@ Rickshaw._List = new Class({
   # that were removed, so here's our own hot implementation here.
   erase: (model) ->
     unless Rickshaw.Utils.isModelInstance( model )
-      throw name: "ModelRequired", message: "Can't erase non-model objects yet."
+      throw new Error "Can't erase non-model objects yet."
     i = @length
     removedIndexes = []
     while i--
@@ -159,7 +159,7 @@ Rickshaw._List = new Class({
       else
         this.parent (a, b) -> Array._compare( a.get( fnOrProp ), b.get( fnOrProp ) )
     else
-      throw name: "ArgumentError", message: "You must pass a model property as a string or a sort function."
+      throw new Error "You must pass a model property as a string or a sort function."
     endOrder = this.uuids()
     this.fireEvent( "sort", [this] ) unless Array._equal( startOrder, endOrder )
     this

@@ -10,7 +10,9 @@
 #
 Handlebars.registerHelper "subController", (controller, options) ->
   unless arguments.length is 2
-    throw name: "ArgumentError", message: "You must supply a controller instance to \"subController\"."
+    throw new Error "You must supply a controller instance to \"subController\"."
+  unless controller
+    throw new Error "Invalid controller passed to the subController template helper."
   return new Handlebars.SafeString this._setupSubcontroller( controller )
 
 # tag
@@ -32,6 +34,6 @@ Handlebars.registerHelper "tag", (tag, options) ->
 # Render all elements of a Rickshaw.ListController
 Handlebars.registerHelper "list", (options) ->
   unless typeOf( @collection ) is "array"
-    throw name: "HandlebarsError", message: "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
+    throw new Error "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
   html = @collection.map (model) => this._setupSubcontrollerWithModel( model )
   return new Handlebars.SafeString html.join( "\n" )

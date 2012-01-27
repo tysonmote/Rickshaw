@@ -174,7 +174,7 @@ describe "Rickshaw.List", ->
         @todoList.erase( {cool: true} )
       catch error
         thrownError = error
-      expect( thrownError.name ).toEqual( "ModelRequired" )
+      expect( thrownError.message ).toEqual( "Can't erase non-model objects yet." )
 
     it "fires onRemoveEvents", ->
       removeEvent = new EventCapture @todoList, "remove"

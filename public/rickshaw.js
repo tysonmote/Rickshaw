@@ -339,10 +339,7 @@
     erase: function(model) {
       var i, removedIndexes;
       if (!Rickshaw.Utils.isModelInstance(model)) {
-        throw {
-          name: "ModelRequired",
-          message: "Can't erase non-model objects yet."
-        };
+        throw new Error("Can't erase non-model objects yet.");
       }
       i = this.length;
       removedIndexes = [];
@@ -405,10 +402,7 @@
           });
         }
       } else {
-        throw {
-          name: "ArgumentError",
-          message: "You must pass a model property as a string or a sort function."
-        };
+        throw new Error("You must pass a model property as a string or a sort function.");
       }
       endOrder = this.uuids();
       if (!Array._equal(startOrder, endOrder)) this.fireEvent("sort", [this]);
@@ -519,10 +513,7 @@
       if (template = Rickshaw.Templates[this.Template]) {
         return template(this);
       } else {
-        throw {
-          name: "TemplateNotFound",
-          message: "Template \"" + this.Template + "\" not found."
-        };
+        throw new Error("Template \"" + this.Template + "\" not found.");
       }
     },
     _setupSubcontroller: function(subcontroller) {
@@ -663,10 +654,10 @@
 
   Handlebars.registerHelper("subController", function(controller, options) {
     if (arguments.length !== 2) {
-      throw {
-        name: "ArgumentError",
-        message: "You must supply a controller instance to \"subController\"."
-      };
+      throw new Error("You must supply a controller instance to \"subController\".");
+    }
+    if (!controller) {
+      throw new Error("Invalid controller passed to the subController template helper.");
     }
     return new Handlebars.SafeString(this._setupSubcontroller(controller));
   });
@@ -679,10 +670,7 @@
     var html,
       _this = this;
     if (typeOf(this.collection) !== "array") {
-      throw {
-        name: "HandlebarsError",
-        message: "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
-      };
+      throw new Error("You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template.");
     }
     html = this.collection.map(function(model) {
       return _this._setupSubcontrollerWithModel(model);
