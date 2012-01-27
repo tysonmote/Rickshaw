@@ -33,6 +33,9 @@ Rickshaw._BaseController = new Class({
     @_metamorphs = [] # All render destination Metamorphs
     @_deferredSubControllers = [] # Delayed render subControllers
     @Events = Object.clone( @Events )
+    Object.each this.__proto__, (fn, name) =>
+      if match = name.match( /^on[A-Z][A-Za-z]+$/ )
+        this.addEvent match[0], -> fn.apply( this, arguments )
     @rendered = false
     this.renderTo( element ) if element
     return this

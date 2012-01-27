@@ -462,12 +462,21 @@
     Template: "",
     Events: {},
     initialize: function(element, options) {
+      var _this = this;
       if (element == null) element = null;
       if (options == null) options = {};
       Rickshaw.register(this);
       this._metamorphs = [];
       this._deferredSubControllers = [];
       this.Events = Object.clone(this.Events);
+      Object.each(this.__proto__, function(fn, name) {
+        var match;
+        if (match = name.match(/^on[A-Z][A-Za-z]+$/)) {
+          return _this.addEvent(match[0], function() {
+            return fn.apply(this, arguments);
+          });
+        }
+      });
       this.rendered = false;
       if (element) this.renderTo(element);
       return this;

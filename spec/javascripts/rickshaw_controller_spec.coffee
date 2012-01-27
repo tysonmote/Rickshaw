@@ -25,6 +25,19 @@ describe "Rickshaw.Controller", ->
       expect( todoController.setModel( @todo ) ).toBe( todoController )
       expect( todoController.model ).toBe( @todo )
 
+  describe "preattached events", ->
+    it "attaches on initialize", ->
+      fired = false
+      args = null
+      Controller = new Rickshaw.Controller
+        onCoolEvent: ->
+          fired = true
+          args = Array.from( arguments )
+      controller = new Controller()
+      controller.fireEvent( "coolEvent", [1, "cool"] )
+      expect( fired ).toBe( true )
+      expect( args ).toEqualArray( [1, "cool"] )
+
   describe "model events", ->
     beforeEach ->
       @Todo = new Rickshaw.Model()
