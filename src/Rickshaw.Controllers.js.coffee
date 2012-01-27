@@ -300,19 +300,15 @@ Rickshaw._ListController = new Class({
   # DOM-manipulation possible.
 
   _modelsAdded: (collection, models, position="unknown") ->
-    console.log "_modelsAdded", arguments
     this.render()
 
   _modelsRemoved: (collection, models, position="unknown") ->
-    console.log "_modelsRemoved", arguments
     this.render()
 
   _collectionSorted: ->
-    console.log "_collectionSorted", arguments
     this.render()
 
   _modelChanged: (model, properties) ->
-    console.log "_modelChanged", arguments
     # The model's `Rickshaw.Controller` instace will re-render itself.
 
   Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]

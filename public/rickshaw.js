@@ -646,21 +646,16 @@
     },
     _modelsAdded: function(collection, models, position) {
       if (position == null) position = "unknown";
-      console.log("_modelsAdded", arguments);
       return this.render();
     },
     _modelsRemoved: function(collection, models, position) {
       if (position == null) position = "unknown";
-      console.log("_modelsRemoved", arguments);
       return this.render();
     },
     _collectionSorted: function() {
-      console.log("_collectionSorted", arguments);
       return this.render();
     },
-    _modelChanged: function(model, properties) {
-      return console.log("_modelChanged", arguments);
-    },
+    _modelChanged: function(model, properties) {},
     Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]
   });
 
