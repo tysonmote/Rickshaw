@@ -107,7 +107,10 @@ Rickshaw._BaseController = new Class({
   # Subcontrollers
   # --------------
 
-  # Returns metamorph placeholder HTML for given subcontroller.
+  # Creates a metamorph for the subcontroller, stores it in the subcontroller's
+  # "_metamorphs" array, and returns the metamorph placeholder HTML for given
+  # subcontroller. The subcontroller is added to this controllers list of
+  # subcontrollers to render, if needed.
   _setupSubcontroller: (subcontroller) ->
     # create and store the metamorph on the subcontroller
     morph = new Rickshaw.Metamorph()
@@ -193,10 +196,10 @@ Rickshaw._Controller = new Class({
   # Sets this controller's associated model instance and re-renders all
   # Metamorphs.
   setModel: (model, render=true) ->
-    this._detachModelEvents @model if @model
+    this._detachModelEvents( @model ) if @model
     @model = model
-    this._setupModelDefers @model
-    this._attachModelEvents @model
+    this._setupModelDefers( @model )
+    this._attachModelEvents( @model )
     this.render() if render
     return this
 
@@ -204,21 +207,16 @@ Rickshaw._Controller = new Class({
     @DeferToModel.each (property) =>
       this[property] = -> model.get property
 
-  # Hook up the model's events.
   _attachModelEvents: (model) ->
-    model.addEvents(
-      change: this._modelChanged
-    )
+    model.addEvents( change: this._modelChanged )
 
   _detachModelEvents: (model) ->
-    model.removeEvents(
-      change: this._modelChanged
-    )
+    model.removeEvents( change: this._modelChanged )
 
   # Hooks
   # -----
 
-  # bound
+  # Bound to the controller instance.
   _modelChanged: (model, changedProperties) ->
     this.render() if @rendered
 
@@ -229,7 +227,6 @@ Rickshaw._Controller = new Class({
 })
 
 Rickshaw.Controller = Rickshaw.Utils.subclassConstructor( Rickshaw._Controller )
-
 
 # Rickshaw.ListController
 # -----------------------
@@ -246,7 +243,8 @@ Rickshaw._ListController = new Class({
 
   # Either a Rickshaw.Controller class or a function that takes a model
   # instance and returns the correct controller class for that model.
-  Subcontroller: null
+  Subcontroller: ->
+    raise new Error "Subcontroller not set for this ListController."
 
   # Params:
   #
@@ -271,8 +269,8 @@ Rickshaw._ListController = new Class({
   # Subcontrollers
   # --------------
 
-  # Creates subcontroller for the model and hooks it all up.
-  # Returns placeholder html.
+  # Creates subcontroller for the model and hooks it all up. Returns
+  # placeholder html.
   _setupSubcontrollerWithModel: (model) ->
     klass = if typeof @Subcontroller is "function"
       this.Subcontroller( model )
@@ -322,7 +320,9 @@ Rickshaw._ListController = new Class({
     this.render()
 
   _modelChanged: (model, properties) ->
-    # The model's `Rickshaw.Controller` instace will re-render itself.
+    # The model's `Rickshaw.Controller` instace will re-render itself. Don't
+    # know if we actually need to do anything here until we implement filtering
+    # on ListControllers.
 
   Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]
 

@@ -603,7 +603,9 @@
   Rickshaw._ListController = new Class({
     Extends: Rickshaw._BaseController,
     collection: null,
-    Subcontroller: null,
+    Subcontroller: function() {
+      return raise(new Error("Subcontroller not set for this ListController."));
+    },
     initialize: function(collection, element) {
       if (collection == null) collection = null;
       if (element == null) element = null;
