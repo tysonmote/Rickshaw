@@ -705,12 +705,15 @@
     outerHTML: function() {
       return this._morph.outerHTML();
     },
-    _startElement: function() {
-      return this.__startElement || (this.__startElement = $(this._morph.start));
+    startMarkerElement: function() {
+      return this._startMarkerElement || (this._startMarkerElement = $(this._morph.start));
+    },
+    endMarkerElement: function() {
+      return this._endMarkerElement || (this._endMarkerElement = $(this._morph.end));
     },
     rootElements: function() {
       var el, idMatch, nextElements, rootElements, seekEndId, selfIndex, start;
-      if (!(start = this._startElement())) {
+      if (!(start = this.startMarkerElement())) {
         raise({
           name: "MetamorphNotRendered",
           message: "This Metamorph hasn't been inserted into the DOM yet."

@@ -46,6 +46,14 @@ describe "Rickshaw.Metamorph", ->
       expect( elements ).toBeInstanceOf( Elements )
       expect( elements.length ).toBe( 3 )
 
+    it "returns start marker element", ->
+      expect( @morph.startMarkerElement().tagName ).toBe( "SCRIPT" )
+      expect( @morph.startMarkerElement().id ).toMatch( /metamorph-\d+-start/ )
+
+    it "returns end marker element", ->
+      expect( @morph.endMarkerElement().tagName ).toBe( "SCRIPT" )
+      expect( @morph.endMarkerElement().id ).toMatch( /metamorph-\d+-end/ )
+
   describe "siblings", ->
     beforeEach ->
       # Resulting HTML is like:

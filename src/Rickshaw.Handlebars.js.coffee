@@ -13,7 +13,7 @@ Handlebars.registerHelper "subController", (controller, options) ->
     throw new Error "You must supply a controller instance to \"subController\"."
   unless controller
     throw new Error "Invalid controller passed to the subController template helper."
-  return new Handlebars.SafeString this._setupSubcontroller( controller )
+  return new Handlebars.SafeString( this._setupSubcontroller( controller ) )
 
 # tag
 # ---
@@ -26,7 +26,7 @@ Handlebars.registerHelper "subController", (controller, options) ->
 #     {{ tag "script[src='/lolcats.js']" }}
 #
 Handlebars.registerHelper "tag", (tag, options) ->
-  return new Handlebars.SafeString ( new Element( tag ) ).outerHTML
+  return new Handlebars.SafeString( ( new Element( tag ) ).outerHTML )
 
 # list
 # ----

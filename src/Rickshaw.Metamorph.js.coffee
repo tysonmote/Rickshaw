@@ -19,7 +19,9 @@ Rickshaw.Metamorph = new Class({
 
   # Append this Metamorph inside the given element.
   inject: (element) ->
-    @_morph.appendTo $( element )
+    @_morph.appendTo( $( element ) )
+
+  # TODO: after and prepend for "below" and "above"
 
   # Set this Metamorph's inner HTML content.
   set: (prop, value) ->
@@ -29,14 +31,18 @@ Rickshaw.Metamorph = new Class({
 
   outerHTML: -> @_morph.outerHTML()
 
-  # Opening marker tag.
-  _startElement: ->
-    @__startElement ||= $( @_morph.start )
+  # Opening marker element.
+  startMarkerElement: ->
+    @_startMarkerElement ||= $( @_morph.start )
+
+  # Ending marker element.
+  endMarkerElement: ->
+    @_endMarkerElement ||= $( @_morph.end )
 
   # All root elements between the Metamorph's two marker tags as an Elements
   # array.
   rootElements: ->
-    unless start = this._startElement()
+    unless start = this.startMarkerElement()
       raise name: "MetamorphNotRendered", message: "This Metamorph hasn't been inserted into the DOM yet."
 
     rootElements = new Elements()
