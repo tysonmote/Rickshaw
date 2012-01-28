@@ -38,7 +38,16 @@ Rickshaw._BaseController = new Class({
     return this
 
   _setupEvents: ->
-    @Events = Object.clone @Events
+    # Setup element events (bind to controller and pass element to callback).
+    controller = this
+    @Events = Object.clone( @Events )
+    Object.each @Events, (events, selector) =>
+      Object.each events, (fn, eventName) =>
+        fn = controller[fn] if typeof fn is "string"
+        # Bind event callback to controller
+        @Events[selector][eventName] = (e) ->
+          fn.apply( controller, [e, this] )
+
     # Auto-hookup any instance methods of the form "onFooBar" as events.
     Object.each this.__proto__, (fn, name) =>
       if match = name.match( /^on[A-Z][A-Za-z]+$/ )
@@ -81,12 +90,12 @@ Rickshaw._BaseController = new Class({
   _renderMetamorph: (morph, html=null) ->
     html ||= this._html()
     morph.set( "html", html )
-    this._attachEvents( morph )
-    this._renderSubControllers()
+    this._attachElementEvents( morph )
+    this._renderDelayedSubControllers()
     @rendered = true
 
   _postRender: ->
-    this._renderSubControllers()
+    this._renderDelayedSubControllers()
     this.fireEvent "afterRender", this
 
   _html: ->
@@ -98,6 +107,7 @@ Rickshaw._BaseController = new Class({
   # Subcontrollers
   # --------------
 
+  # Returns metamorph placeholder HTML for given subcontroller.
   _setupSubcontroller: (subcontroller) ->
     # create and store the metamorph on the subcontroller
     morph = new Rickshaw.Metamorph()
@@ -106,28 +116,17 @@ Rickshaw._BaseController = new Class({
     @_delayedSubControllers.include( subcontroller )
     return morph.outerHTML()
 
-  _renderSubControllers: ->
+  _renderDelayedSubControllers: ->
     while controller = @_delayedSubControllers.shift()
       controller.render()
 
-  # Events
-  # ------
+  # Element Events
+  # --------------
 
   # Attach all element events to a given metamorph's elements.
-  _attachEvents: (morph) ->
-    Object.each( this._boundElementEvents(), (events, selector) =>
+  _attachElementEvents: (morph) ->
+    Object.each @Events, (events, selector) ->
       morph.getElements( selector ).addEvents( events )
-    )
-
-  _boundElementEvents: ->
-    return @__boundElementEvents if @__boundElementEvents
-    controller = this
-    @__boundElementEvents ||= Object.map( @Events, (events, selector) ->
-      Object.map( events, (fn, eventName) ->
-        fn = controller[fn] if typeof fn is "string"
-        (e) -> fn.apply( controller, [e, this])
-      )
-    )
 
 })
 

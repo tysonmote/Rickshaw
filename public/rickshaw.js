@@ -466,8 +466,18 @@
       return this;
     },
     _setupEvents: function() {
-      var _this = this;
+      var controller,
+        _this = this;
+      controller = this;
       this.Events = Object.clone(this.Events);
+      Object.each(this.Events, function(events, selector) {
+        return Object.each(events, function(fn, eventName) {
+          if (typeof fn === "string") fn = controller[fn];
+          return _this.Events[selector][eventName] = function(e) {
+            return fn.apply(controller, [e, this]);
+          };
+        });
+      });
       return Object.each(this.__proto__, function(fn, name) {
         var match;
         if (match = name.match(/^on[A-Z][A-Za-z]+$/)) {
@@ -507,12 +517,12 @@
       if (html == null) html = null;
       html || (html = this._html());
       morph.set("html", html);
-      this._attachEvents(morph);
-      this._renderSubControllers();
+      this._attachElementEvents(morph);
+      this._renderDelayedSubControllers();
       return this.rendered = true;
     },
     _postRender: function() {
-      this._renderSubControllers();
+      this._renderDelayedSubControllers();
       return this.fireEvent("afterRender", this);
     },
     _html: function() {
@@ -530,7 +540,7 @@
       this._delayedSubControllers.include(subcontroller);
       return morph.outerHTML();
     },
-    _renderSubControllers: function() {
+    _renderDelayedSubControllers: function() {
       var controller, _results;
       _results = [];
       while (controller = this._delayedSubControllers.shift()) {
@@ -538,24 +548,10 @@
       }
       return _results;
     },
-    _attachEvents: function(morph) {
-      var _this = this;
-      return Object.each(this._boundElementEvents(), function(events, selector) {
+    _attachElementEvents: function(morph) {
+      return Object.each(this.Events, function(events, selector) {
         return morph.getElements(selector).addEvents(events);
       });
-    },
-    _boundElementEvents: function() {
-      var controller;
-      if (this.__boundElementEvents) return this.__boundElementEvents;
-      controller = this;
-      return this.__boundElementEvents || (this.__boundElementEvents = Object.map(this.Events, function(events, selector) {
-        return Object.map(events, function(fn, eventName) {
-          if (typeof fn === "string") fn = controller[fn];
-          return function(e) {
-            return fn.apply(controller, [e, this]);
-          };
-        });
-      }));
     }
   });
 
