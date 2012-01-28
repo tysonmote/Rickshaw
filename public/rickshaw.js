@@ -455,15 +455,20 @@
     Implements: [Events],
     Template: "",
     Events: {},
-    initialize: function(element, options) {
-      var _this = this;
+    initialize: function(element) {
       if (element == null) element = null;
-      if (options == null) options = {};
       Rickshaw.register(this);
+      this.rendered = false;
       this._metamorphs = [];
-      this._deferredSubControllers = [];
+      this._delayedSubControllers = [];
+      this._setupEvents();
+      if (element) this.renderTo(element);
+      return this;
+    },
+    _setupEvents: function() {
+      var _this = this;
       this.Events = Object.clone(this.Events);
-      Object.each(this.__proto__, function(fn, name) {
+      return Object.each(this.__proto__, function(fn, name) {
         var match;
         if (match = name.match(/^on[A-Z][A-Za-z]+$/)) {
           return _this.addEvent(match[0], function() {
@@ -471,42 +476,44 @@
           });
         }
       });
-      this.rendered = false;
-      if (element) this.renderTo(element);
-      return this;
+    },
+    render: function() {
+      var html,
+        _this = this;
+      if (!this._preRender(this._metamorphs)) return false;
+      html = this._html();
+      this._metamorphs.each(function(morph) {
+        return _this._renderMetamorph(morph, html, false);
+      });
+      this._postRender();
+      return true;
     },
     renderTo: function(element) {
       var morph;
       morph = new Rickshaw.Metamorph();
       this._metamorphs.push(morph);
       morph.inject(element);
-      return this._renderMetamorph(morph);
-    },
-    render: function() {
-      var html,
-        _this = this;
-      if (!(this._metamorphs.length > 0)) return false;
-      this.fireEvent("beforeRender", this);
-      html = this._html();
-      this._metamorphs.each(function(morph) {
-        return _this._renderMetamorph(morph, html, false);
-      });
-      this._finalizeRender();
+      this._preRender([morph]);
+      this._renderMetamorph(morph);
+      this._postRender();
       return true;
     },
-    _finalizeRender: function() {
-      this._renderSubControllers();
-      return this.fireEvent("afterRender", this);
+    _preRender: function(morphs) {
+      if (!(morphs.length > 0)) return false;
+      this.fireEvent("beforeRender", this);
+      return true;
     },
-    _renderMetamorph: function(morph, html, fireEvent) {
+    _renderMetamorph: function(morph, html) {
       if (html == null) html = null;
-      if (fireEvent == null) fireEvent = true;
       html || (html = this._html());
       morph.set("html", html);
       this._attachEvents(morph);
-      this._renderSubControllers(morph);
-      this.rendered = true;
-      if (fireEvent) return this.fireEvent("afterRender", this);
+      this._renderSubControllers();
+      return this.rendered = true;
+    },
+    _postRender: function() {
+      this._renderSubControllers();
+      return this.fireEvent("afterRender", this);
     },
     _html: function() {
       var template;
@@ -520,13 +527,13 @@
       var morph;
       morph = new Rickshaw.Metamorph();
       subcontroller._metamorphs.push(morph);
-      this._deferredSubControllers.include(subcontroller);
+      this._delayedSubControllers.include(subcontroller);
       return morph.outerHTML();
     },
     _renderSubControllers: function() {
       var controller, _results;
       _results = [];
-      while (controller = this._deferredSubControllers.shift()) {
+      while (controller = this._delayedSubControllers.shift()) {
         _results.push(controller.render());
       }
       return _results;

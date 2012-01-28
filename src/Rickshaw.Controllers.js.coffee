@@ -28,52 +28,66 @@ Rickshaw._BaseController = new Class({
   #     or element id that this controller's rendered template HTML is rendered
   #     to. If this is null, it can be set to an Element or Elements later (as
   #     in the case of subController).
-  initialize: (element=null, options={}) ->
+  initialize: (element=null) ->
     Rickshaw.register( this )
-    @_metamorphs = [] # All render destination Metamorphs
-    @_deferredSubControllers = [] # Delayed render subControllers
-    @Events = Object.clone( @Events )
-    Object.each this.__proto__, (fn, name) =>
-      if match = name.match( /^on[A-Z][A-Za-z]+$/ )
-        this.addEvent match[0], -> fn.apply( this, arguments )
     @rendered = false
+    @_metamorphs = [] # All render destinations
+    @_delayedSubControllers = [] # Delayed render subControllers
+    this._setupEvents()
     this.renderTo( element ) if element
     return this
+
+  _setupEvents: ->
+    @Events = Object.clone @Events
+    # Auto-hookup any instance methods of the form "onFooBar" as events.
+    Object.each this.__proto__, (fn, name) =>
+      if match = name.match( /^on[A-Z][A-Za-z]+$/ )
+        this.addEvent match[0], -> fn.apply this, arguments
 
   # Rendering
   # ---------
 
-  # Adds a render destination metamorph in the bottom of the given element and
-  # renders it.
+  # (Re-)render to all destinations. Fires "beforeRender" and "afterRender"
+  # events. Returns true after everything has been rendered.
+  render: ->
+    return false unless this._preRender( @_metamorphs )
+    html = this._html()
+    @_metamorphs.each (morph) => this._renderMetamorph( morph, html, false )
+    this._postRender()
+    return true
+
+  # Renders to the bottom of the given element. Other render destinations
+  # (metamorphs) will not be re-rendered.
+  #
+  # TODO: Accept other Metamorphs? Relative location argument?
   renderTo: (element) ->
     morph = new Rickshaw.Metamorph()
     @_metamorphs.push( morph )
     morph.inject( element )
+    this._preRender( [morph] )
     this._renderMetamorph( morph )
-
-  # Re-render all metamorphs.
-  render: ->
-    return false unless @_metamorphs.length > 0
-    this.fireEvent( "beforeRender", this )
-    html = this._html()
-    @_metamorphs.each( (morph) =>
-      this._renderMetamorph( morph, html, false )
-    )
-    this._finalizeRender()
+    this._postRender()
     return true
 
-  _finalizeRender: ->
-    this._renderSubControllers()
-    this.fireEvent( "afterRender", this )
+  # Returns true if we should continue with rendering the given metamorphs.
+  # Fires the "beforeRender" event.
+  _preRender: (morphs) ->
+    return false unless morphs.length > 0
+    this.fireEvent "beforeRender", this
+    return true
 
-  # (Re-)render a specific metamorph.
-  _renderMetamorph: (morph, html=null, fireEvent=true) ->
+  # Render a single metamorph destination for this controller, as well as any
+  # nested sub-controllers.
+  _renderMetamorph: (morph, html=null) ->
     html ||= this._html()
     morph.set( "html", html )
     this._attachEvents( morph )
-    this._renderSubControllers( morph ) # TODO: move to onAfterRender
+    this._renderSubControllers()
     @rendered = true
-    this.fireEvent( "afterRender", this ) if fireEvent
+
+  _postRender: ->
+    this._renderSubControllers()
+    this.fireEvent "afterRender", this
 
   _html: ->
     if template = Rickshaw.Templates[@Template]
@@ -89,11 +103,11 @@ Rickshaw._BaseController = new Class({
     morph = new Rickshaw.Metamorph()
     subcontroller._metamorphs.push( morph )
     # render later
-    @_deferredSubControllers.include( subcontroller )
+    @_delayedSubControllers.include( subcontroller )
     return morph.outerHTML()
 
   _renderSubControllers: ->
-    while controller = @_deferredSubControllers.shift()
+    while controller = @_delayedSubControllers.shift()
       controller.render()
 
   # Events
