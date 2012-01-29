@@ -40,12 +40,13 @@ Rickshaw._BaseController = new Class({
   _setupEvents: ->
     # Setup element events (bind to controller and pass element to callback).
     controller = this
-    @Events = Object.clone( @Events )
+    @_boundEvents = {}
     Object.each @Events, (events, selector) =>
-      Object.each events, (fn, eventName) =>
+      @_boundEvents[selector] = {}
+      Object.each events.__proto__, (fn, eventName) =>
         fn = controller[fn] if typeof fn is "string"
         # Bind event callback to controller
-        @Events[selector][eventName] = (e) ->
+        @_boundEvents[selector][eventName] = (e) ->
           fn.apply( controller, [e, this] )
 
     # Auto-hookup any instance methods of the form "onFooBar" as events.
@@ -128,7 +129,7 @@ Rickshaw._BaseController = new Class({
 
   # Attach all element events to a given metamorph's elements.
   _attachElementEvents: (morph) ->
-    Object.each @Events, (events, selector) ->
+    Object.each @_boundEvents, (events, selector) ->
       morph.getElements( selector ).addEvents( events )
 
 })
