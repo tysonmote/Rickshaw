@@ -256,6 +256,8 @@ Rickshaw._ListController = new Class({
   #     in the case of the `subController` or `list` Handlebars helpers).
   initialize: (collection=null, element=null) ->
     this.setList( collection, false ) if collection
+    @_listMetamorph = null # This gives us acces to the top and bottom of the
+                           # list for injecting list elements.
     this.parent( element )
 
   # Sets this controller's associated collection instance and re-renders all

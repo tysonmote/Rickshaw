@@ -6,7 +6,7 @@ require "/rickshaw.js"
 describe "Rickshaw.Metamorph", ->
   beforeEach setupCustomMatchers
 
-  describe "non-nested", ->
+  describe "with no sibling metamorphs", ->
     beforeEach ->
       @morph = new Rickshaw.Metamorph("
         <div class='rad'>You betcha.</div>
@@ -46,6 +46,12 @@ describe "Rickshaw.Metamorph", ->
       expect( elements ).toBeInstanceOf( Elements )
       expect( elements.length ).toBe( 3 )
 
+    it "returns start marker tag", ->
+      expect( @morph.startMarkerTag() ).toMatch( /<script id='metamorph-\d+-start' type='text\/x-placeholder'><\/script>/ )
+
+    it "returns end marker tag", ->
+      expect( @morph.endMarkerTag() ).toMatch( /<script id='metamorph-\d+-end' type='text\/x-placeholder'><\/script>/ )
+
     it "returns start marker element", ->
       expect( @morph.startMarkerElement().tagName ).toBe( "SCRIPT" )
       expect( @morph.startMarkerElement().id ).toMatch( /metamorph-\d+-start/ )
@@ -54,7 +60,7 @@ describe "Rickshaw.Metamorph", ->
       expect( @morph.endMarkerElement().tagName ).toBe( "SCRIPT" )
       expect( @morph.endMarkerElement().id ).toMatch( /metamorph-\d+-end/ )
 
-  describe "siblings", ->
+  describe "with sibling metamorphs", ->
     beforeEach ->
       # Resulting HTML is like:
       #
@@ -87,3 +93,23 @@ describe "Rickshaw.Metamorph", ->
       elements = @morph1.getElements( "div[id]" )
       expect( elements ).toBeInstanceOf( Elements )
       expect( elements.length ).toBe( 3 )
+
+    it "returns start marker tag", ->
+      for morph in [@morph1, @morph2]
+        expect( morph.startMarkerTag() ).toMatch( /<script id='metamorph-\d+-start' type='text\/x-placeholder'><\/script>/ )
+
+    it "returns end marker tag", ->
+      for morph in [@morph1, @morph2]
+        expect( morph.endMarkerTag() ).toMatch( /<script id='metamorph-\d+-end' type='text\/x-placeholder'><\/script>/ )
+
+    it "returns start marker element", ->
+      for morph in [@morph1, @morph2]
+        expect( morph.startMarkerElement().tagName ).toBe( "SCRIPT" )
+        expect( morph.startMarkerElement().id ).toMatch( /metamorph-\d+-start/ )
+      expect( @morph1.startMarkerElement().id ).not.toEqual( @morph2.startMarkerElement().id )
+
+    it "returns end marker element", ->
+      for morph in [@morph1, @morph2]
+        expect( morph.endMarkerElement().tagName ).toBe( "SCRIPT" )
+        expect( morph.endMarkerElement().id ).toMatch( /metamorph-\d+-end/ )
+      expect( @morph1.endMarkerElement().id ).not.toEqual( @morph2.endMarkerElement().id )

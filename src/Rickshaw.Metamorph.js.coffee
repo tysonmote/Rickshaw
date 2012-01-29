@@ -17,11 +17,29 @@ Rickshaw.Metamorph = new Class({
     @_morph = Metamorph html
     return this
 
-  # Append this Metamorph inside the given element.
-  inject: (element) ->
-    @_morph.appendTo( $( element ) )
+  # Injecting
+  # ---------
 
-  # TODO: after and prepend for "below" and "above"
+  # Insert this metamorph to a place relative to the given element's children.
+  # Position can be "bottom" (default), "top", "after" or "before".
+  inject: (element, position="bottom") ->
+    element = $( element )
+    switch location
+      when "top"
+        if firstChild = element.getElement( "*" )
+          @_morph.above( firstChild )
+        else
+          @_morph.appendTo( element )
+      when "before"
+        @_morph.above( element )
+      when "after"
+        @_morph.below( element )
+      else # "bottom"
+        @_morph.appendTo( element )
+    return this
+
+  # Inner HTML
+  # ----------
 
   # Set this Metamorph's inner HTML content.
   set: (prop, value) ->
@@ -29,15 +47,21 @@ Rickshaw.Metamorph = new Class({
       raise name: "ArgumentError", message: "Don't know how to set \"#{prop}\" on Rickshaw.Metamorphs"
     @_morph.html value
 
+  # Metamorph markers
+  # -----------------
+
   outerHTML: -> @_morph.outerHTML()
 
-  # Opening marker element.
-  startMarkerElement: ->
-    @_startMarkerElement ||= $( @_morph.start )
+  startMarkerTag: -> @_morph.startTag()
 
-  # Ending marker element.
-  endMarkerElement: ->
-    @_endMarkerElement ||= $( @_morph.end )
+  startMarkerElement: -> @_startMarkerElement ||= $( @_morph.start )
+
+  endMarkerTag: -> @_morph.endTag()
+
+  endMarkerElement: ->  @_endMarkerElement ||= $( @_morph.end )
+
+  # Elements
+  # --------
 
   # All root elements between the Metamorph's two marker tags as an Elements
   # array.
@@ -47,17 +71,17 @@ Rickshaw.Metamorph = new Class({
 
     rootElements = new Elements()
     selfIndex = parseInt @_morph.start.match( /\d+/ )
-    nextElements = start.getAllNext "*:not(script#metamorph-#{selfIndex}-end)"
+    nextElements = start.getAllNext( "*:not(#metamorph-#{selfIndex}-end)" )
 
-    while el = nextElements.shift()
-      # Nested metamorph start tag, skip to the matching end tag
-      if el.tagName is "SCRIPT" and el.id and idMatch = el.id.match /^metamorph-(\d+)-start/
+    for el, i in nextElements
+      if el.tagName is "SCRIPT" and el.id and idMatch = el.id.match( /^metamorph-(\d+)-start/ )
+        # Found nested metamorph -- fast-forward to end tag
         seekEndId = "metamorph-#{idMatch[1]}-end"
-        el = nextElements.shift()
-        while not ( el.tagName is "SCRIPT" and el.id is seekEndId )
-          el = nextElements.shift()
+        i = i + 1
+        while el = nextElements[i] and not ( el.tagName is "SCRIPT" and el.id is seekEndId )
+          i = i + 1
       else
-        rootElements.push el
+        rootElements.push( el )
 
     return rootElements
 
