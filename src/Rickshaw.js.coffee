@@ -24,10 +24,9 @@ window.Rickshaw = {
   # Reload all templates from <script id="Rickshaw-*-template"> elements. This
   # is called on DOMReady, so you only need to call this if you're adding
   # templates after DOMReady.
-  refreshTemplates: (idRegex) ->
-    idRegex ||= @templateRegex
+  refreshTemplates: (idRegex=Rickshaw.templateRegex) ->
     Rickshaw.Templates ||= {}
-    $$( "script[id^='#{@templatePrefix}']" ).each( (el) ->
+    $$( "script[id^='#{Rickshaw.templatePrefix}']" ).each( (el) ->
       if parsedId = idRegex.exec( el.get( "id" ) )
         name = parsedId.getLast()
         Rickshaw.Templates[name] = Handlebars.compile( el.get( "html" ) )
