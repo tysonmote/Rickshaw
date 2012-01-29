@@ -86,9 +86,13 @@ To do
 (Roughly in order of importance)
 
 * Specs for:
-  * Controller
   * ListController
   * Handlebars extensions
+* Figure out if delegated events in ListControllers are feasable. A few issues:
+  * Don't want to define elements on the ListController -- they should stay in the sub-controllers
+  * ListControllers can render many different sub-controller classes in the list
+  * Event functions need to be bound to the controllers
+    * Maybe we store a reference to the controller on the metamorph script tag?
 * Make ListController re-rendering more efficient
   * Pushing, unshifting, shifting, popping
   * Sorting, reversing
