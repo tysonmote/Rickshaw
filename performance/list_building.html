@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<head>
+  <script src="../public/vendor/mootools-core.js" type="text/javascript"></script>
+  <script src="../public/vendor/handlebars.js" type="text/javascript"></script>
+  <script src="../public/vendor/metamorph.js" type="text/javascript"></script>
+  <script src="../public/rickshaw.js" type="text/javascript"></script>
+  <script src="timer.js" type="text/javascript"></script>
+  <script src="base.js" type="text/javascript"></script>
+
+  <!--
+  Past results
+  ============
+
+  (All tests run on 11" MacBook Air i7 1.8GHz in Safari.)
+
+  1/28/2011 8pm
+  *************
+
+  When list rendering re-renders the entire list on every single add. (Bad...)
+
+  Adding 10 items:    25 msec
+  Adding 20 items:   139 msec
+  Adding 40 items:   713 msec
+  Adding 80 items: 4,525 msec
+
+  -->
+</head>
+<body>
+  <div id="content"></div>
+  <script type="text/handlebars" id="Rickshaw-todo-template">
+    <li>{{ content }}</li>
+  </script>
+  <script type="text/handlebars" id="Rickshaw-todos-template">
+    <ul>
+      {{ list }}
+    </ul>
+  </script>
+  <script type="text/javascript">
+    document.addEvent( "domready", function() {
+      // Run tests
+      new Timer( "10 items", 5, function(){
+        todoList = new TodoList();
+        todoListController = new TodoListController( todoList, $( "content" ) );
+        (10).each(function(i){
+          todoList.push({index: i});
+        });
+        todoList = null;
+        todoListController = null;
+      });
+      new Timer( "20 items", 5, function(){
+        todoList = new TodoList();
+        todoListController = new TodoListController( todoList, $( "content" ) );
+        (20).each(function(i){
+          todoList.push({index: i});
+        });
+        todoList = null;
+        todoListController = null;
+      });
+      new Timer( "40 items", 5, function(){
+        todoList = new TodoList();
+        todoListController = new TodoListController( todoList, $( "content" ) );
+        (40).each(function(i){
+          todoList.push({index: i});
+        });
+        todoList = null;
+        todoListController = null;
+      });
+      new Timer( "80 items", 5, function(){
+        todoList = new TodoList();
+        todoListController = new TodoListController( todoList, $( "content" ) );
+        (80).each(function(i){
+          todoList.push({index: i});
+        });
+        todoList = null;
+        todoListController = null;
+      });
+    })
+  </script>
+</body>

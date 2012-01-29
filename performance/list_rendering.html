@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<head>
+  <script src="../public/vendor/mootools-core.js" type="text/javascript"></script>
+  <script src="../public/vendor/handlebars.js" type="text/javascript"></script>
+  <script src="../public/vendor/metamorph.js" type="text/javascript"></script>
+  <script src="../public/rickshaw.js" type="text/javascript"></script>
+  <script src="timer.js" type="text/javascript"></script>
+  <script src="base.js" type="text/javascript"></script>
+
+  <!--
+  Past results
+  ============
+
+  (All tests run on 11" MacBook Air i7 1.8GHz in Safari.)
+
+  1/28/2011 8pm
+  *************
+
+  Adding 100 items to list:  6 msec
+  Adding 200 items to list: 12 msec
+  Adding 400 items to list: 29 msec
+
+  Rendering 100 items:   205 msec
+  Rendering 200 items: 1,271 msec
+  Rendering 400 items: 8,631 msec
+
+  1/28/2011 10pm
+  *************
+
+  Adding 100 items to list: (same)
+  Adding 200 items to list: (same)
+  Adding 400 items to list: (same)
+
+  Rendering 100 items:   108 msec (   -97 msec)
+  Rendering 200 items:   429 msec (  -842 msec)
+  Rendering 400 items: 1,674 msec (-6,957 msec)
+
+  -->
+</head>
+<body>
+  <div id="content"></div>
+  <script type="text/handlebars" id="Rickshaw-todo-template">
+    <li>{{ content }}</li>
+  </script>
+  <script type="text/handlebars" id="Rickshaw-todos-template">
+    <ul>
+      {{ list }}
+    </ul>
+  </script>
+  <script type="text/javascript">
+    // // 1,300 msec (orig.)
+    // //   529 msec (shift --> reverse and pop)
+    // //   400 msec (manipulations --> plain iterate)
+    // setTimeout( function(){
+    //   new Timer( "Build list: 200 items", 1, function() {
+    //     zList = new TodoList();
+    //     (200).each(function(i){
+    //       zList.push({index: i});
+    //     });
+    //   });
+    // 
+    //   new Timer( "Render 200 items", 1, function(){
+    //     todoListController = new TodoListController( zList, $( "content" ) );
+    //     todoListController = null;
+    //   });
+    // }, 0);
+
+    document.addEvent( "domready", function() {
+      new Timer( "Build list: 100 items", 3, function(){
+        aList = null;
+        aList = new TodoList();
+        (100).each(function(i){
+          aList.push({index: i});
+        });
+      });
+    
+      new Timer( "Build list: 200 items", 3, function(){
+        bList = null;
+        bList = new TodoList();
+        (200).each(function(i){
+          bList.push({index: i});
+        });
+      });
+    
+      new Timer( "Build list: 400 items", 3, function(){
+        cList = null;
+        cList = new TodoList();
+        (400).each(function(i){
+          cList.push({index: i});
+        });
+      });
+    
+      new Timer( "Render 100 items", 3, function(){
+        todoListController = new TodoListController( aList, $( "content" ) );
+        todoListController = null;
+      });
+    
+      new Timer( "Render 200 items", 3, function(){
+        todoListController = new TodoListController( bList, $( "content" ) );
+        todoListController = null;
+      });
+    
+      new Timer( "Render 400 items", 3, function(){
+        todoListController = new TodoListController( cList, $( "content" ) );
+        todoListController = null;
+      });
+    });
+  </script>
+</body>
