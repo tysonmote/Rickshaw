@@ -274,18 +274,18 @@ Rickshaw._ListController = new Class({
   # Creates subcontroller for the model and hooks it all up. Returns
   # placeholder html.
   _setupSubcontrollerWithModel: (model) ->
-    klass = if typeof @Subcontroller is "function"
-      this.Subcontroller( model )
+    klass = if instanceOf( @Subcontroller, Class )
+      @Subcontroller
     else
-      this.Subcontroller
+      this.Subcontroller( model )
     return this._setupSubcontroller( new klass( model ) )
 
   # Events
   # ------
 
   # Hook up the collection's events.
-  _attachListEvents: ->
-    @collection.addEvents(
+  _attachListEvents: (collection) ->
+    collection.addEvents(
       add: this._modelsAdded
       remove: this._modelsRemoved
       sort: this._collectionSorted
@@ -293,8 +293,8 @@ Rickshaw._ListController = new Class({
     )
 
   # Detach a collection's events.
-  _detachListEvents: ->
-    @collection.removeEvents(
+  _detachListEvents: (collection) ->
+    collection.removeEvents(
       add: this._modelsAdded
       remove: this._modelsRemoved
       sort: this._collectionSorted
@@ -313,13 +313,13 @@ Rickshaw._ListController = new Class({
   # DOM-manipulation possible.
 
   _modelsAdded: (collection, models, position="unknown") ->
-    this.render()
+    this.render() if @rendered
 
   _modelsRemoved: (collection, models, position="unknown") ->
-    this.render()
+    this.render() if @rendered
 
   _collectionSorted: ->
-    this.render()
+    this.render() if @rendered
 
   _modelChanged: (model, properties) ->
     # The model's `Rickshaw.Controller` instace will re-render itself. Don't
