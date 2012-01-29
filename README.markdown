@@ -15,7 +15,7 @@ Here is a brief to-do list example, as is required by law:
     Todo = new Rickshaw.Model(
       isDone: -> !!this.get( "done" )
     )
-    TodoList = new Rickshaw.List( modelClass: Todo )
+    TodoList = new Rickshaw.List( ModelClass: Todo )
 
 Rickshaw Model instances are pretty much what you expect them to be: your data,
 with no real ties to the interface (a.k.a. views), although you may want to use
