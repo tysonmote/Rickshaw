@@ -9,9 +9,9 @@
     templatePrefix: "Rickshaw",
     templateRegex: /^Rickshaw-(\w+)-template$/,
     refreshTemplates: function(idRegex) {
-      idRegex || (idRegex = this.templateRegex);
+      if (idRegex == null) idRegex = Rickshaw.templateRegex;
       Rickshaw.Templates || (Rickshaw.Templates = {});
-      $$("script[id^='" + this.templatePrefix + "']").each(function(el) {
+      $$("script[id^='" + Rickshaw.templatePrefix + "']").each(function(el) {
         var name, parsedId;
         if (parsedId = idRegex.exec(el.get("id"))) {
           name = parsedId.getLast();
@@ -610,6 +610,7 @@
       if (collection == null) collection = null;
       if (element == null) element = null;
       if (collection) this.setList(collection, false);
+      this._listMetamorph = null;
       return this.parent(element);
     },
     setList: function(collection, render) {
@@ -621,19 +622,19 @@
     },
     _setupSubcontrollerWithModel: function(model) {
       var klass;
-      klass = typeof this.Subcontroller === "function" ? this.Subcontroller(model) : this.Subcontroller;
+      klass = instanceOf(this.Subcontroller, Class) ? this.Subcontroller : this.Subcontroller(model);
       return this._setupSubcontroller(new klass(model));
     },
-    _attachListEvents: function() {
-      return this.collection.addEvents({
+    _attachListEvents: function(collection) {
+      return collection.addEvents({
         add: this._modelsAdded,
         remove: this._modelsRemoved,
         sort: this._collectionSorted,
         change: this._modelChanged
       });
     },
-    _detachListEvents: function() {
-      return this.collection.removeEvents({
+    _detachListEvents: function(collection) {
+      return collection.removeEvents({
         add: this._modelsAdded,
         remove: this._modelsRemoved,
         sort: this._collectionSorted,
@@ -642,14 +643,14 @@
     },
     _modelsAdded: function(collection, models, position) {
       if (position == null) position = "unknown";
-      return this.render();
+      if (this.rendered) return this.render();
     },
     _modelsRemoved: function(collection, models, position) {
       if (position == null) position = "unknown";
-      return this.render();
+      if (this.rendered) return this.render();
     },
     _collectionSorted: function() {
-      return this.render();
+      if (this.rendered) return this.render();
     },
     _modelChanged: function(model, properties) {},
     Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]
@@ -677,9 +678,13 @@
     if (typeOf(this.collection) !== "array") {
       throw new Error("You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template.");
     }
-    html = this.collection.map(function(model) {
-      return _this._setupSubcontrollerWithModel(model);
+    html = [];
+    this._listMetamorph = new Rickshaw.Metamorph();
+    html.push(this._listMetamorph.startMarkerTag());
+    this.collection.each(function(model) {
+      return html.push(_this._setupSubcontrollerWithModel(model));
     });
+    html.push(this._listMetamorph.endMarkerTag());
     return new Handlebars.SafeString(html.join("\n"));
   });
 
@@ -690,8 +695,28 @@
       this._morph = Metamorph(html);
       return this;
     },
-    inject: function(element) {
-      return this._morph.appendTo($(element));
+    inject: function(element, position) {
+      var firstChild;
+      if (position == null) position = "bottom";
+      element = $(element);
+      switch (location) {
+        case "top":
+          if (firstChild = element.getElement("*")) {
+            this._morph.above(firstChild);
+          } else {
+            this._morph.appendTo(element);
+          }
+          break;
+        case "before":
+          this._morph.above(element);
+          break;
+        case "after":
+          this._morph.below(element);
+          break;
+        default:
+          this._morph.appendTo(element);
+      }
+      return this;
     },
     set: function(prop, value) {
       if (prop !== "html") {
@@ -705,14 +730,20 @@
     outerHTML: function() {
       return this._morph.outerHTML();
     },
+    startMarkerTag: function() {
+      return this._morph.startTag();
+    },
     startMarkerElement: function() {
       return this._startMarkerElement || (this._startMarkerElement = $(this._morph.start));
+    },
+    endMarkerTag: function() {
+      return this._morph.endTag();
     },
     endMarkerElement: function() {
       return this._endMarkerElement || (this._endMarkerElement = $(this._morph.end));
     },
     rootElements: function() {
-      var el, idMatch, nextElements, rootElements, seekEndId, selfIndex, start;
+      var el, i, idMatch, nextElements, rootElements, seekEndId, selfIndex, start, _len;
       if (!(start = this.startMarkerElement())) {
         raise({
           name: "MetamorphNotRendered",
@@ -721,13 +752,14 @@
       }
       rootElements = new Elements();
       selfIndex = parseInt(this._morph.start.match(/\d+/));
-      nextElements = start.getAllNext("*:not(script#metamorph-" + selfIndex + "-end)");
-      while (el = nextElements.shift()) {
+      nextElements = start.getAllNext("*:not(#metamorph-" + selfIndex + "-end)");
+      for (i = 0, _len = nextElements.length; i < _len; i++) {
+        el = nextElements[i];
         if (el.tagName === "SCRIPT" && el.id && (idMatch = el.id.match(/^metamorph-(\d+)-start/))) {
           seekEndId = "metamorph-" + idMatch[1] + "-end";
-          el = nextElements.shift();
-          while (!(el.tagName === "SCRIPT" && el.id === seekEndId)) {
-            el = nextElements.shift();
+          i = i + 1;
+          while (el = nextElements[i] && !(el.tagName === "SCRIPT" && el.id === seekEndId)) {
+            i = i + 1;
           }
         } else {
           rootElements.push(el);
