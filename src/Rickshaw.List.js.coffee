@@ -35,12 +35,13 @@ Rickshaw._List = new Class({
 
   initialize: ->
     Rickshaw.register( this )
+    Rickshaw.addParentClass( this )
     this.push.apply( this, arguments ) if arguments.length > 0
     return this
 
   # Array of all model UUIDs. Used for detecting changes after sorts without
-  # assuming that every sort actuall changed the sort order.
-  uuids: -> this.mapProperty( "_uuid" )
+  # assuming that every sort actually changed the sort order.
+  uuids: -> this.mapProperty( "$uuid" )
 
   # Adding
   # ------

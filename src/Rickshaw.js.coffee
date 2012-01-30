@@ -43,16 +43,16 @@ window.Rickshaw = {
     str.join( "" )
 
   register: (object) ->
-    object._uuid = Rickshaw.uuid()
-    Rickshaw._objects[object._uuid] = object
+    object.$uuid = Rickshaw.uuid()
+    Rickshaw._objects[object.$uuid] = object
+
+  addParentClass: (object) ->
+    unless uuid = object.$constructor.$uuid
+      throw "The given object doesn't have a parent Class with a UUID."
+    object._class = Rickshaw.get( uuid )
 
   get: (uuid) ->
     @_objects[uuid]
-
-  # Destroy the object and remove the _objects reference to it.
-  # TODO: Do we need this?
-  DELETE: (object) ->
-    delete Rickshaw._objects[object._uuid]
 }
 
 document.addEvent( "domready", Rickshaw.refreshTemplates )
@@ -83,13 +83,14 @@ Rickshaw.Utils = {
   # Return a Class constructor function that uses the given Class as a base
   # class. We use this so that we can use nested inheritance.
   subclassConstructor: (baseClass) ->
-    return( (params) ->
-      new Class( Object.merge( { Extends: baseClass }, params ) )
-    )
+    (params) ->
+      constructor = new Class( Object.merge( { Extends: baseClass }, params ) )
+      Rickshaw.register constructor
+      return constructor
 
   # Returns true if the given item is an instance of a Rickshaw.Model subclass.
   isModelInstance: (item) ->
-    !!( item._uuid && item._get && item._set && item.data )
+    !!( item.$uuid && item._get && item._set && item.data )
 }
 
 # MooTools Extensions

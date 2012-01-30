@@ -30,6 +30,7 @@ Rickshaw._BaseController = new Class({
   #     in the case of subController).
   initialize: (element=null) ->
     Rickshaw.register( this )
+    Rickshaw.addParentClass( this )
     @rendered = false
     @_metamorphs = [] # All render destinations
     @_delayedSubControllers = [] # Delayed render subControllers
