@@ -71,7 +71,7 @@ Rickshaw._BaseController = new Class({
   #
   # TODO: Accept other Metamorphs? Relative location argument?
   renderTo: (element) ->
-    morph = new Rickshaw.Metamorph()
+    morph = new Rickshaw.Metamorph( this )
     @_metamorphs.push( morph )
     morph.inject( element )
     this._preRender( [morph] )
@@ -114,7 +114,7 @@ Rickshaw._BaseController = new Class({
   # subcontrollers to render, if needed.
   _setupSubcontroller: (subcontroller) ->
     # create and store the metamorph on the subcontroller
-    morph = new Rickshaw.Metamorph()
+    morph = new Rickshaw.Metamorph( this )
     subcontroller._metamorphs.push( morph )
     # render later
     @_delayedSubControllers.include( subcontroller )

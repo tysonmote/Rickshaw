@@ -36,7 +36,7 @@ Handlebars.registerHelper "list", (options) ->
   unless typeOf( @collection ) is "array"
     throw new Error "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
   html = []
-  @_listMetamorph = new Rickshaw.Metamorph()
+  @_listMetamorph = new Rickshaw.Metamorph( this )
   html.push( @_listMetamorph.startMarkerTag() )
   @collection.each (model) => html.push( this._setupSubcontrollerWithModel( model ) )
   html.push( @_listMetamorph.endMarkerTag() )

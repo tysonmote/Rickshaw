@@ -8,7 +8,8 @@ describe "Rickshaw.Metamorph", ->
 
   describe "with no sibling metamorphs", ->
     beforeEach ->
-      @morph = new Rickshaw.Metamorph("
+      @fakeController = {}
+      @morph = new Rickshaw.Metamorph( @fakeController, "
         <div class='rad'>You betcha.</div>
         <div class='neat'>
           <div class='super'>Tubular.</div>
@@ -60,6 +61,9 @@ describe "Rickshaw.Metamorph", ->
       expect( @morph.endMarkerElement().tagName ).toBe( "SCRIPT" )
       expect( @morph.endMarkerElement().id ).toMatch( /metamorph-\d+-end/ )
 
+    it "stores the controller instance on the start marker", ->
+      expect( @morph.startMarkerElement().retrieve( "rickshaw-controller" ) ).toBe( @fakeController )
+
   describe "with sibling metamorphs", ->
     beforeEach ->
       # Resulting HTML is like:
@@ -69,14 +73,16 @@ describe "Rickshaw.Metamorph", ->
       #     <div#neat>...</div> (morph1)
       #     <p#funky></p>       (morph2)
       #
-      @morph1 = new Rickshaw.Metamorph("
+      @fakeController1 = {}
+      @morph1 = new Rickshaw.Metamorph( @fakeController1, "
         <div id='rad'>You betcha.</div>
         <div id='neat'>
           <div id='lolcat'>Definitely.</div>
           <span class='cool'>Nested, yo.</span>
         </div>
       ")
-      @morph2 = new Rickshaw.Metamorph("
+      @fakeController2 = {}
+      @morph2 = new Rickshaw.Metamorph( @fakeController2, "
         <p id='funky'>Right on.</p>
       ")
       $( "test" ).set "html", "<p>Already here.</p>"
@@ -113,3 +119,7 @@ describe "Rickshaw.Metamorph", ->
         expect( morph.endMarkerElement().tagName ).toBe( "SCRIPT" )
         expect( morph.endMarkerElement().id ).toMatch( /metamorph-\d+-end/ )
       expect( @morph1.endMarkerElement().id ).not.toEqual( @morph2.endMarkerElement().id )
+
+    it "stores the controller instance on the start marker", ->
+      expect( @morph1.startMarkerElement().retrieve( "rickshaw-controller" ) ).toBe( @fakeController1 )
+      expect( @morph2.startMarkerElement().retrieve( "rickshaw-controller" ) ).toBe( @fakeController2 )
