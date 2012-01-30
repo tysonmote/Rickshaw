@@ -38,6 +38,6 @@ Handlebars.registerHelper "list", (options) ->
   html = []
   @_listMetamorph = new Rickshaw.Metamorph( this )
   html.push( @_listMetamorph.startMarkerTag() )
-  @collection.each (model) => html.push( this._setupSubcontrollerWithModel( model ) )
+  @collection.each (model) => html.push( this._setupListItemController( model ) )
   html.push( @_listMetamorph.endMarkerTag() )
   return new Handlebars.SafeString html.join( "\n" )

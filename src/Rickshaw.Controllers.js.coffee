@@ -91,7 +91,7 @@ Rickshaw._BaseController = new Class({
   _renderMetamorph: (morph, html=null) ->
     html ||= this._html()
     morph.set( "html", html )
-    this._attachElementEvents( morph )
+    this._attachElementEvents( morph ) unless @_useRelayedEvents
     this._renderDelayedSubControllers()
     @rendered = true
 
@@ -112,10 +112,15 @@ Rickshaw._BaseController = new Class({
   # "_metamorphs" array, and returns the metamorph placeholder HTML for given
   # subcontroller. The subcontroller is added to this controllers list of
   # subcontrollers to render, if needed.
-  _setupSubcontroller: (subcontroller) ->
+  #
+  # If `useRelayedEvents` is true, the subcontroller will not attach element
+  # events -- they should be taken care of as relayed events by a paret element
+  # (esp. in ListController lists).
+  _setupSubcontroller: (subcontroller, useRelayedEvents=false) ->
     # create and store the metamorph on the subcontroller
     morph = new Rickshaw.Metamorph( this )
     subcontroller._metamorphs.push( morph )
+    subcontroller._useRelayedEvents = true if useRelayedEvents
     # render later
     @_delayedSubControllers.include( subcontroller )
     return morph.outerHTML()
@@ -273,13 +278,13 @@ Rickshaw._ListController = new Class({
   # --------------
 
   # Creates subcontroller for the model and hooks it all up. Returns
-  # placeholder html.
-  _setupSubcontrollerWithModel: (model) ->
+  # placeholder html (metamorph marker tags).
+  _setupListItemController: (model) ->
     klass = if instanceOf( @Subcontroller, Class )
       @Subcontroller
     else
       this.Subcontroller( model )
-    return this._setupSubcontroller( new klass( model ) )
+    return this._setupSubcontroller( new klass( model ), true )
 
   # Events
   # ------
