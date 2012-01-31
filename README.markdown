@@ -89,9 +89,7 @@ To do
   * ListController
     * Lots of spec fun to be had with the list item subcontrollers + event delegation, and so on.
   * Handlebars extensions
-* Make ListController re-rendering more efficient
-  * Pushing, unshifting, shifting, popping
-  * Sorting, reversing
+* Make ListController re-rendering more efficient when sorting or reversing the list
 * Audit use of UUIDs -- can probably get rid of a lot of this.
 * Some sort of pluggable persistance backend
   * RESTful, WebSockets, LocalStorage, etc.

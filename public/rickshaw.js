@@ -582,7 +582,7 @@
       subcontroller._metamorphs.push(morph);
       if (useRelayedEvents) subcontroller._useRelayedEvents = true;
       this._delayedSubControllers.include(subcontroller);
-      return morph.outerHTML();
+      return morph;
     },
     _renderDelayedSubControllers: function() {
       var controller, _i, _len, _ref;
@@ -719,8 +719,28 @@
       });
     },
     _modelsAdded: function(collection, models, position) {
+      var listWrapper,
+        _this = this;
       if (position == null) position = "unknown";
-      if (this.rendered) return this.render();
+      if (!(this.rendered && models.length > 0)) return;
+      listWrapper = this._listWrapper();
+      if (position === "end") {
+        models.each(function(model) {
+          var morph;
+          morph = _this._setupListItemController(model);
+          return morph.inject(listWrapper, "bottom");
+        });
+        return this._renderDelayedSubControllers();
+      } else if (position === "beginning") {
+        models.reverse().each(function(model) {
+          var morph;
+          morph = _this._setupListItemController(model);
+          return morph.inject(listWrapper, "top");
+        });
+        return this._renderDelayedSubControllers();
+      } else {
+        return this.render();
+      }
     },
     _modelsRemoved: function(collection, models, position) {
       if (position == null) position = "unknown";
@@ -736,13 +756,15 @@
   Rickshaw.ListController = Rickshaw.Utils.subclassConstructor(Rickshaw._ListController);
 
   Handlebars.registerHelper("subController", function(controller, options) {
+    var morph;
     if (arguments.length !== 2) {
       throw new Error("You must supply a controller instance to \"subController\".");
     }
     if (!controller) {
       throw new Error("Invalid controller passed to the subController template helper.");
     }
-    return new Handlebars.SafeString(this._setupSubcontroller(controller));
+    morph = this._setupSubcontroller(controller);
+    return new Handlebars.SafeString(morph.outerHTML());
   });
 
   Handlebars.registerHelper("tag", function(tag, options) {
@@ -771,7 +793,7 @@
     html.push(splitWrapperTag[1]);
     html.push(this._listMetamorph.startMarkerTag());
     this.collection.each(function(model) {
-      return html.push(_this._setupListItemController(model));
+      return html.push(_this._setupListItemController(model).outerHTML());
     });
     html.push(this._listMetamorph.endMarkerTag());
     html.push(splitWrapperTag[2]);

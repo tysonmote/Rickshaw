@@ -103,9 +103,9 @@ Rickshaw._BaseController = new Class({
   # --------------
 
   # Creates a metamorph for the subcontroller, stores it in the subcontroller's
-  # "_metamorphs" array, and returns the metamorph placeholder HTML for given
-  # subcontroller. The subcontroller is added to this controllers list of
-  # subcontrollers to render, if needed.
+  # "_metamorphs" array, and returns the metamorph for the given subcontroller.
+  # The subcontroller is added to this controllers list of subcontrollers to
+  # render, if needed.
   #
   # If `useRelayedEvents` is true, the subcontroller will not attach element
   # events -- they should be taken care of as relayed events by a paret element
@@ -117,7 +117,7 @@ Rickshaw._BaseController = new Class({
     subcontroller._useRelayedEvents = true if useRelayedEvents
     # render later
     @_delayedSubControllers.include( subcontroller )
-    return morph.outerHTML()
+    return morph
 
   _renderDelayedSubControllers: ->
     for controller in @_delayedSubControllers
@@ -279,7 +279,7 @@ Rickshaw._ListController = new Class({
   # --------------
 
   # Creates subcontroller for the model and hooks it all up. Returns
-  # placeholder html (metamorph marker tags).
+  # a Rickshaw.Metamorph.
   _setupListItemController: (model) ->
     klass = if instanceOf( @Subcontroller, Class )
       @Subcontroller
@@ -351,8 +351,23 @@ Rickshaw._ListController = new Class({
   # sort-order changes, we should figure out how to do the minimum
   # DOM-manipulation possible.
 
+  # TODO: Refactor.
   _modelsAdded: (collection, models, position="unknown") ->
-    this.render() if @rendered
+    return unless @rendered and models.length > 0
+
+    listWrapper = this._listWrapper()
+    if position == "end"
+      models.each (model) =>
+        morph = this._setupListItemController( model )
+        morph.inject( listWrapper, "bottom" )
+      this._renderDelayedSubControllers()
+    else if position == "beginning"
+      models.reverse().each (model) =>
+        morph = this._setupListItemController( model )
+        morph.inject( listWrapper, "top" )
+      this._renderDelayedSubControllers()
+    else
+      this.render()
 
   _modelsRemoved: (collection, models, position="unknown") ->
     this.render() if @rendered

@@ -13,7 +13,8 @@ Handlebars.registerHelper "subController", (controller, options) ->
     throw new Error "You must supply a controller instance to \"subController\"."
   unless controller
     throw new Error "Invalid controller passed to the subController template helper."
-  return new Handlebars.SafeString( this._setupSubcontroller( controller ) )
+  morph = this._setupSubcontroller( controller )
+  return new Handlebars.SafeString( morph.outerHTML() )
 
 # tag
 # ---
@@ -56,7 +57,7 @@ Handlebars.registerHelper "list", (wrapperSelector, options) ->
   html = []
   html.push( splitWrapperTag[1] )
   html.push( @_listMetamorph.startMarkerTag() )
-  @collection.each (model) => html.push( this._setupListItemController( model ) )
+  @collection.each (model) => html.push( this._setupListItemController( model ).outerHTML() )
   html.push( @_listMetamorph.endMarkerTag() )
   html.push( splitWrapperTag[2] )
   return new Handlebars.SafeString html.join( "" )
