@@ -119,7 +119,7 @@ Rickshaw._BaseController = new Class({
   # (esp. in ListController lists).
   _setupSubcontroller: (subcontroller, useRelayedEvents=false) ->
     # create and store the metamorph on the subcontroller
-    morph = new Rickshaw.Metamorph( this )
+    morph = new Rickshaw.Metamorph( subcontroller )
     subcontroller._metamorphs.push( morph )
     subcontroller._useRelayedEvents = true if useRelayedEvents
     # render later
