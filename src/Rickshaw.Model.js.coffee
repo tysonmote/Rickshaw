@@ -70,7 +70,6 @@ Rickshaw._Model = new Class({
   initialize: (data = {}) ->
     # Setup uuid
     Rickshaw.register( this )
-    Rickshaw.addParentClass( this )
     this._initData data
     this._attachEvents()
     return this

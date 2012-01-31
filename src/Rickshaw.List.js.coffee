@@ -35,7 +35,6 @@ Rickshaw._List = new Class({
 
   initialize: ->
     Rickshaw.register( this )
-    Rickshaw.addParentClass( this )
     this.push.apply( this, arguments ) if arguments.length > 0
     return this
 

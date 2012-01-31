@@ -31,7 +31,7 @@ describe "Rickshaw.Metamorph", ->
       expect( $$( "#test > p" ).length ).toBe( 1 )
 
     it "can change its HTML", ->
-      @morph.set "html", "<b class='blink'>OMG</b>"
+      @morph.setHTML "<b class='blink'>OMG</b>"
       expect( $$( "#test > .rad" ).length ).toBe( 0 )
       expect( $$( "#test > .blink" ).length ).toBe( 1 )
 

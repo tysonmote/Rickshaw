@@ -13,7 +13,7 @@
 
   (All tests run on 11" MacBook Air i7 1.8GHz in Safari.)
 
-  1/28/2011 8pm
+  1/28/2012 8pm
   *************
 
   Adding 100 items to list:  6 msec
@@ -24,7 +24,7 @@
   Rendering 200 items: 1,271 msec
   Rendering 400 items: 8,631 msec
 
-  1/28/2011 10pm
+  1/28/2012 10pm
   *************
 
   Adding 100 items to list: (same)
@@ -34,6 +34,17 @@
   Rendering 100 items:   108 msec (   -97 msec)
   Rendering 200 items:   429 msec (  -842 msec)
   Rendering 400 items: 1,674 msec (-6,957 msec)
+
+  1/30/2012 9pm
+  *************
+
+  Adding 100 items to list: (same)
+  Adding 200 items to list: (same)
+  Adding 400 items to list: (same)
+
+  Rendering 100 items:  23 msec (   -85 msec)
+  Rendering 200 items:  82 msec (  -347 msec)
+  Rendering 400 items: 422 msec (-1,225 msec)
 
   -->
 </head>
@@ -48,23 +59,6 @@
     </ul>
   </script>
   <script type="text/javascript">
-    // // 1,300 msec (orig.)
-    // //   529 msec (shift --> reverse and pop)
-    // //   400 msec (manipulations --> plain iterate)
-    // setTimeout( function(){
-    //   new Timer( "Build list: 200 items", 1, function() {
-    //     zList = new TodoList();
-    //     (200).each(function(i){
-    //       zList.push({index: i});
-    //     });
-    //   });
-    // 
-    //   new Timer( "Render 200 items", 1, function(){
-    //     todoListController = new TodoListController( zList, $( "content" ) );
-    //     todoListController = null;
-    //   });
-    // }, 0);
-
     document.addEvent( "domready", function() {
       new Timer( "Build list: 100 items", 3, function(){
         aList = null;
@@ -73,7 +67,7 @@
           aList.push({index: i});
         });
       });
-    
+
       new Timer( "Build list: 200 items", 3, function(){
         bList = null;
         bList = new TodoList();
@@ -81,7 +75,7 @@
           bList.push({index: i});
         });
       });
-    
+
       new Timer( "Build list: 400 items", 3, function(){
         cList = null;
         cList = new TodoList();
@@ -89,17 +83,17 @@
           cList.push({index: i});
         });
       });
-    
+
       new Timer( "Render 100 items", 3, function(){
         todoListController = new TodoListController( aList, $( "content" ) );
         todoListController = null;
       });
-    
+
       new Timer( "Render 200 items", 3, function(){
         todoListController = new TodoListController( bList, $( "content" ) );
         todoListController = null;
       });
-    
+
       new Timer( "Render 400 items", 3, function(){
         todoListController = new TodoListController( cList, $( "content" ) );
         todoListController = null;
