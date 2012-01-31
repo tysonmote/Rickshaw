@@ -13,7 +13,7 @@
 
   (All tests run on 11" MacBook Air i7 1.8GHz in Safari.)
 
-  1/28/2011 8pm
+  1/28/2012 8pm
   *************
 
   When list rendering re-renders the entire list on every single add. (Bad...)
@@ -31,14 +31,12 @@
     <li>{{ content }}</li>
   </script>
   <script type="text/handlebars" id="Rickshaw-todos-template">
-    <ul>
-      {{ list }}
-    </ul>
+    {{ list "ul" }}
   </script>
   <script type="text/javascript">
     document.addEvent( "domready", function() {
       // Run tests
-      new Timer( "10 items", 5, function(){
+      new Timer( "10 items", 3, function(){
         todoList = new TodoList();
         todoListController = new TodoListController( todoList, $( "content" ) );
         (10).each(function(i){
@@ -47,7 +45,7 @@
         todoList = null;
         todoListController = null;
       });
-      new Timer( "20 items", 5, function(){
+      new Timer( "20 items", 3, function(){
         todoList = new TodoList();
         todoListController = new TodoListController( todoList, $( "content" ) );
         (20).each(function(i){
@@ -56,7 +54,7 @@
         todoList = null;
         todoListController = null;
       });
-      new Timer( "40 items", 5, function(){
+      new Timer( "40 items", 3, function(){
         todoList = new TodoList();
         todoListController = new TodoListController( todoList, $( "content" ) );
         (40).each(function(i){
@@ -65,7 +63,7 @@
         todoList = null;
         todoListController = null;
       });
-      new Timer( "80 items", 5, function(){
+      new Timer( "80 items", 3, function(){
         todoList = new TodoList();
         todoListController = new TodoListController( todoList, $( "content" ) );
         (80).each(function(i){

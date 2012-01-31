@@ -43,16 +43,16 @@ window.Rickshaw = {
     str.join( "" )
 
   register: (object) ->
-    object._uuid = Rickshaw.uuid()
-    Rickshaw._objects[object._uuid] = object
+    object.$uuid = Rickshaw.uuid()
+    Rickshaw._objects[object.$uuid] = object
+
+  addParentClass: (object) ->
+    unless uuid = object.$constructor.$uuid
+      throw "The given object doesn't have a parent Class with a UUID."
+    object._class = Rickshaw.get( uuid )
 
   get: (uuid) ->
     @_objects[uuid]
-
-  # Destroy the object and remove the _objects reference to it.
-  # TODO: Do we need this?
-  DELETE: (object) ->
-    delete Rickshaw._objects[object._uuid]
 }
 
 document.addEvent( "domready", Rickshaw.refreshTemplates )
@@ -83,13 +83,49 @@ Rickshaw.Utils = {
   # Return a Class constructor function that uses the given Class as a base
   # class. We use this so that we can use nested inheritance.
   subclassConstructor: (baseClass) ->
-    return( (params) ->
-      new Class( Object.merge( { Extends: baseClass }, params ) )
-    )
+    (params) ->
+      constructor = new Class( Object.merge( { Extends: baseClass }, params ) )
+      Rickshaw.register constructor
+      return constructor
 
   # Returns true if the given item is an instance of a Rickshaw.Model subclass.
   isModelInstance: (item) ->
-    !!( item._uuid && item._get && item._set && item.data )
+    !!( item.$uuid && item._get && item._set && item.data )
+
+  # Given an element, and the event, selector, and type that was fired, this
+  # method returns the correct controller instance. This is nasty as shit, yo.
+  findController: (element, eventFn, eventSelector, eventType) ->
+    isMatchingMetamorph = (element) ->
+      return element.tagName is "SCRIPT" and
+      element.id and
+      element.id.match( /^metamorph-\d+-start$/ ) and
+      ( controller = element.retrieve( "rickshaw-controller" ) ) and
+      controller.Events[eventSelector]?[eventType] == eventFn
+
+    # Find previous sibling metamorph start tag, walking up the tree if necessary
+    findPreviousMetamorphStart = (element) ->
+      if previous = element.getPrevious( "script[type='text/x-placeholder']" )
+        return previous
+      else if parent = element.getParent()
+        return parent if parent is document.body
+        until parent is document.body or previous = parent.getPrevious( "script[type='text/x-placeholder']" )
+          parent = parent.getParent()
+        if parent is document.body
+          return document.body
+        else
+          return previous
+      else
+        return document.body
+
+    cursor = element
+    until cursor is document.body or isMatchingMetamorph( cursor )
+      cursor = findPreviousMetamorphStart( cursor )
+
+    if cursor is document.body
+      throw new Error "findController() reached <body> without finding a matching metamorph."
+    else
+      return cursor.retrieve( "rickshaw-controller" )
+
 }
 
 # MooTools Extensions

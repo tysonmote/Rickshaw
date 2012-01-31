@@ -30,14 +30,18 @@
       return str.join("");
     },
     register: function(object) {
-      object._uuid = Rickshaw.uuid();
-      return Rickshaw._objects[object._uuid] = object;
+      object.$uuid = Rickshaw.uuid();
+      return Rickshaw._objects[object.$uuid] = object;
+    },
+    addParentClass: function(object) {
+      var uuid;
+      if (!(uuid = object.$constructor.$uuid)) {
+        throw "The given object doesn't have a parent Class with a UUID.";
+      }
+      return object._class = Rickshaw.get(uuid);
     },
     get: function(uuid) {
       return this._objects[uuid];
-    },
-    DELETE: function(object) {
-      return delete Rickshaw._objects[object._uuid];
     }
   };
 
@@ -67,14 +71,51 @@
       }
     },
     subclassConstructor: function(baseClass) {
-      return (function(params) {
-        return new Class(Object.merge({
+      return function(params) {
+        var constructor;
+        constructor = new Class(Object.merge({
           Extends: baseClass
         }, params));
-      });
+        Rickshaw.register(constructor);
+        return constructor;
+      };
     },
     isModelInstance: function(item) {
-      return !!(item._uuid && item._get && item._set && item.data);
+      return !!(item.$uuid && item._get && item._set && item.data);
+    },
+    findController: function(element, eventFn, eventSelector, eventType) {
+      var cursor, findPreviousMetamorphStart, isMatchingMetamorph;
+      isMatchingMetamorph = function(element) {
+        var controller, _ref;
+        return element.tagName === "SCRIPT" && element.id && element.id.match(/^metamorph-\d+-start$/) && (controller = element.retrieve("rickshaw-controller")) && ((_ref = controller.Events[eventSelector]) != null ? _ref[eventType] : void 0) === eventFn;
+      };
+      findPreviousMetamorphStart = function(element) {
+        var parent, previous;
+        if (previous = element.getPrevious("script[type='text/x-placeholder']")) {
+          return previous;
+        } else if (parent = element.getParent()) {
+          if (parent === document.body) return parent;
+          while (!(parent === document.body || (previous = parent.getPrevious("script[type='text/x-placeholder']")))) {
+            parent = parent.getParent();
+          }
+          if (parent === document.body) {
+            return document.body;
+          } else {
+            return previous;
+          }
+        } else {
+          return document.body;
+        }
+      };
+      cursor = element;
+      while (!(cursor === document.body || isMatchingMetamorph(cursor))) {
+        cursor = findPreviousMetamorphStart(cursor);
+      }
+      if (cursor === document.body) {
+        throw new Error("findController() reached <body> without finding a matching metamorph.");
+      } else {
+        return cursor.retrieve("rickshaw-controller");
+      }
     }
   };
 
@@ -273,7 +314,7 @@
       return this;
     },
     uuids: function() {
-      return this.mapProperty("_uuid");
+      return this.mapProperty("$uuid");
     },
     push: function() {
       var models, result;
@@ -458,6 +499,7 @@
     initialize: function(element) {
       if (element == null) element = null;
       Rickshaw.register(this);
+      Rickshaw.addParentClass(this);
       this.rendered = false;
       this._metamorphs = [];
       this._delayedSubControllers = [];
@@ -469,11 +511,12 @@
       var controller,
         _this = this;
       controller = this;
-      this.Events = Object.clone(this.Events);
+      this._boundEvents = {};
       Object.each(this.Events, function(events, selector) {
-        return Object.each(events, function(fn, eventName) {
+        _this._boundEvents[selector] = {};
+        return Object.each(events.__proto__, function(fn, eventName) {
           if (typeof fn === "string") fn = controller[fn];
-          return _this.Events[selector][eventName] = function(e) {
+          return _this._boundEvents[selector][eventName] = function(e) {
             return fn.apply(controller, [e, this]);
           };
         });
@@ -500,7 +543,7 @@
     },
     renderTo: function(element) {
       var morph;
-      morph = new Rickshaw.Metamorph();
+      morph = new Rickshaw.Metamorph(this);
       this._metamorphs.push(morph);
       morph.inject(element);
       this._preRender([morph]);
@@ -516,13 +559,12 @@
     _renderMetamorph: function(morph, html) {
       if (html == null) html = null;
       html || (html = this._html());
-      morph.set("html", html);
-      this._attachElementEvents(morph);
+      morph.setHTML(html);
+      if (!this._useRelayedEvents) this._attachElementEvents(morph);
       this._renderDelayedSubControllers();
       return this.rendered = true;
     },
     _postRender: function() {
-      this._renderDelayedSubControllers();
       return this.fireEvent("afterRender", this);
     },
     _html: function() {
@@ -533,23 +575,26 @@
         throw new Error("Template \"" + this.Template + "\" not found.");
       }
     },
-    _setupSubcontroller: function(subcontroller) {
+    _setupSubcontroller: function(subcontroller, useRelayedEvents) {
       var morph;
-      morph = new Rickshaw.Metamorph();
+      if (useRelayedEvents == null) useRelayedEvents = false;
+      morph = new Rickshaw.Metamorph(subcontroller);
       subcontroller._metamorphs.push(morph);
+      if (useRelayedEvents) subcontroller._useRelayedEvents = true;
       this._delayedSubControllers.include(subcontroller);
       return morph.outerHTML();
     },
     _renderDelayedSubControllers: function() {
-      var controller, _results;
-      _results = [];
-      while (controller = this._delayedSubControllers.shift()) {
-        _results.push(controller.render());
+      var controller, _i, _len, _ref;
+      _ref = this._delayedSubControllers;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        controller = _ref[_i];
+        controller.render();
       }
-      return _results;
+      return this._delayedSubControllers = [];
     },
     _attachElementEvents: function(morph) {
-      return Object.each(this.Events, function(events, selector) {
+      return Object.each(this._boundEvents, function(events, selector) {
         return morph.getElements(selector).addEvents(events);
       });
     }
@@ -583,14 +628,10 @@
       });
     },
     _attachModelEvents: function(model) {
-      return model.addEvents({
-        change: this._modelChanged
-      });
+      return model.addEvent("change", this._modelChanged);
     },
     _detachModelEvents: function(model) {
-      return model.removeEvents({
-        change: this._modelChanged
-      });
+      return model.removeEvent("change", this._modelChanged);
     },
     _modelChanged: function(model, changedProperties) {
       if (this.rendered) return this.render();
@@ -604,13 +645,15 @@
     Extends: Rickshaw._BaseController,
     collection: null,
     Subcontroller: function() {
-      return raise(new Error("Subcontroller not set for this ListController."));
+      throw new Error("Subcontroller not set for this ListController.");
     },
     initialize: function(collection, element) {
       if (collection == null) collection = null;
       if (element == null) element = null;
       if (collection) this.setList(collection, false);
+      this._listWrapperSelector = null;
       this._listMetamorph = null;
+      this._hasRelayedEvents = {};
       return this.parent(element);
     },
     setList: function(collection, render) {
@@ -620,10 +663,44 @@
       this._attachListEvents(this.collection);
       if (render) return this.render();
     },
-    _setupSubcontrollerWithModel: function(model) {
+    _setupListItemController: function(model) {
       var klass;
       klass = instanceOf(this.Subcontroller, Class) ? this.Subcontroller : this.Subcontroller(model);
-      return this._setupSubcontroller(new klass(model));
+      return this._setupSubcontroller(new klass(model), true);
+    },
+    _renderDelayedSubControllers: function() {
+      var controller, _i, _len, _ref;
+      _ref = this._delayedSubControllers;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        controller = _ref[_i];
+        controller.render();
+        this._setupSubcontrollerEventRelays(controller);
+      }
+      return this._delayedSubControllers = [];
+    },
+    _listWrapper: function() {
+      return this.__listWrapper || (this.__listWrapper = $$(this._listWrapperSelector)[0]);
+    },
+    _setupSubcontrollerEventRelays: function(controller) {
+      var controllerClass, controllerClassUuid, listWrapper;
+      controllerClass = controller._class;
+      controllerClassUuid = controllerClass.$uuid;
+      if (this._hasRelayedEvents[controllerClassUuid]) return;
+      listWrapper = this._listWrapper();
+      Object.each(controllerClass.prototype.Events, function(events, selector) {
+        return Object.each(events, function(fn, type) {
+          return listWrapper.addEvent("" + type + ":relay(" + selector + ")", function(e, target) {
+            var eventFn;
+            eventFn = controllerClass.prototype.Events[selector][type];
+            if (!eventFn) {
+              throw new Error("Lost track of relayed event -- was it removed from the controller class?");
+            }
+            controller = Rickshaw.Utils.findController(target, eventFn, selector, type);
+            return eventFn.apply(controller, [e, target]);
+          });
+        });
+      });
+      return this._hasRelayedEvents[controllerClassUuid] = true;
     },
     _attachListEvents: function(collection) {
       return collection.addEvents({
@@ -672,24 +749,38 @@
     return new Handlebars.SafeString((new Element(tag)).outerHTML);
   });
 
-  Handlebars.registerHelper("list", function(options) {
-    var html,
+  Handlebars.registerHelper("list", function(wrapperSelector, options) {
+    var html, splitWrapperTag,
       _this = this;
     if (typeOf(this.collection) !== "array") {
       throw new Error("You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template.");
     }
+    if (!options) {
+      options = wrapperSelector;
+      wrapperSelector = "div";
+    }
+    if (wrapperSelector.match(/#\w|\[id=/)) {
+      wrapperSelector += "[data-uuid='" + (Rickshaw.uuid()) + "']";
+    } else {
+      wrapperSelector += "#" + (Rickshaw.uuid());
+    }
+    this._listWrapperSelector = wrapperSelector;
+    splitWrapperTag = (new Element(wrapperSelector)).outerHTML.match(/(<\w+[^>]+>)(<\/\w+>)/);
+    this._listMetamorph = new Rickshaw.Metamorph(this);
     html = [];
-    this._listMetamorph = new Rickshaw.Metamorph();
+    html.push(splitWrapperTag[1]);
     html.push(this._listMetamorph.startMarkerTag());
     this.collection.each(function(model) {
-      return html.push(_this._setupSubcontrollerWithModel(model));
+      return html.push(_this._setupListItemController(model));
     });
     html.push(this._listMetamorph.endMarkerTag());
-    return new Handlebars.SafeString(html.join("\n"));
+    html.push(splitWrapperTag[2]);
+    return new Handlebars.SafeString(html.join(""));
   });
 
   Rickshaw.Metamorph = new Class({
-    initialize: function(html) {
+    initialize: function(controller, html) {
+      this.controller = controller;
       if (html == null) html = "";
       Rickshaw.register(this);
       this._morph = Metamorph(html);
@@ -716,16 +807,12 @@
         default:
           this._morph.appendTo(element);
       }
+      this.startMarkerElement().store("rickshaw-controller", this.controller);
       return this;
     },
-    set: function(prop, value) {
-      if (prop !== "html") {
-        raise({
-          name: "ArgumentError",
-          message: "Don't know how to set \"" + prop + "\" on Rickshaw.Metamorphs"
-        });
-      }
-      return this._morph.html(value);
+    setHTML: function(html) {
+      this._morph.html(html);
+      return this.startMarkerElement().store("rickshaw-controller", this.controller);
     },
     outerHTML: function() {
       return this._morph.outerHTML();

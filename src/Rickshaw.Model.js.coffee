@@ -69,7 +69,7 @@ Rickshaw._Model = new Class({
   # Initialize a new model.
   initialize: (data = {}) ->
     # Setup uuid
-    Rickshaw.register this
+    Rickshaw.register( this )
     this._initData data
     this._attachEvents()
     return this

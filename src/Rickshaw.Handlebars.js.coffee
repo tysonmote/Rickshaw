@@ -31,13 +31,32 @@ Handlebars.registerHelper "tag", (tag, options) ->
 # list
 # ----
 #
-# Render all elements of a Rickshaw.ListController
-Handlebars.registerHelper "list", (options) ->
+# Render all elements of a Rickshaw.ListController. Any element events defined
+# by the subcontroller will be attached to the list wrapper element as relay
+# events. This is significantly faster than attaching events to every list
+# item's elements individually.
+#
+Handlebars.registerHelper "list", (wrapperSelector, options) ->
   unless typeOf( @collection ) is "array"
     throw new Error "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
+
+  unless options
+    options = wrapperSelector
+    wrapperSelector = "div"
+
+  # Ensure that the selector is unique
+  if wrapperSelector.match( /#\w|\[id=/ )
+    wrapperSelector += "[data-uuid='#{Rickshaw.uuid()}']"
+  else
+    wrapperSelector += "##{Rickshaw.uuid()}"
+  @_listWrapperSelector = wrapperSelector
+  splitWrapperTag = ( new Element( wrapperSelector ) ).outerHTML.match( /(<\w+[^>]+>)(<\/\w+>)/ )
+  @_listMetamorph = new Rickshaw.Metamorph( this )
+
   html = []
-  @_listMetamorph = new Rickshaw.Metamorph()
+  html.push( splitWrapperTag[1] )
   html.push( @_listMetamorph.startMarkerTag() )
-  @collection.each (model) => html.push( this._setupSubcontrollerWithModel( model ) )
+  @collection.each (model) => html.push( this._setupListItemController( model ) )
   html.push( @_listMetamorph.endMarkerTag() )
-  return new Handlebars.SafeString html.join( "\n" )
+  html.push( splitWrapperTag[2] )
+  return new Handlebars.SafeString html.join( "" )

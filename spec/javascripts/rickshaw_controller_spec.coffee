@@ -115,6 +115,13 @@ describe "Rickshaw.Controller", ->
       $$( "#test p" ).fireEvent( "click", "Boom." )
       expect( todoController.todoClickArguments ).toEqualArray( ["Boom.", $$( "#test p" )[0]] )
 
+    it "doesn't attach element events if `_useRelayedEvents` is true", ->
+      todoController = new @TodoController( @todo )
+      todoController._useRelayedEvents = true
+      todoController.renderTo( $( "test" ) )
+      $$( "#test p" ).fireEvent( "click", "Boom." )
+      expect( todoController.todoClickArguments ).toBeUndefined()
+
     it "auto detaches events if they don't match the selector anymore", ->
       # TODO
 

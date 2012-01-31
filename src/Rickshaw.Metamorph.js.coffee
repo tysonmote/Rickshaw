@@ -12,9 +12,9 @@
 Rickshaw.Metamorph = new Class({
 
   # Create a new Metamorph but doesn't insert it into the DOM yet.
-  initialize: (html="") ->
-    Rickshaw.register this
-    @_morph = Metamorph html
+  initialize: (@controller, html="") ->
+    Rickshaw.register( this )
+    @_morph = Metamorph( html )
     return this
 
   # Injecting
@@ -36,16 +36,16 @@ Rickshaw.Metamorph = new Class({
         @_morph.below( element )
       else # "bottom"
         @_morph.appendTo( element )
+    this.startMarkerElement().store( "rickshaw-controller", @controller )
     return this
 
   # Inner HTML
   # ----------
 
   # Set this Metamorph's inner HTML content.
-  set: (prop, value) ->
-    unless prop in ["html"]
-      raise name: "ArgumentError", message: "Don't know how to set \"#{prop}\" on Rickshaw.Metamorphs"
-    @_morph.html value
+  setHTML: (html) ->
+    @_morph.html( html )
+    this.startMarkerElement().store( "rickshaw-controller", @controller )
 
   # Metamorph markers
   # -----------------
