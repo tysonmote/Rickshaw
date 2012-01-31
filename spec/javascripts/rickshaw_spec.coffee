@@ -12,10 +12,17 @@ describe "Rickshaw", ->
       expect( Rickshaw.uuid() == Rickshaw.uuid() ).toBe( false )
 
     it "registers objects and finds", ->
-      object = {}
-      Rickshaw.register object
-      expect( object._uuid ).toMatch( UUID_REGEX )
-      expect( Rickshaw.get( object._uuid ) ).toBe( object )
+      thing = {}
+      Rickshaw.register( thing )
+      expect( thing.$uuid ).toMatch( UUID_REGEX )
+      expect( Rickshaw.get( thing.$uuid ) ).toBe( thing )
+
+    it "adds a reference to an instance's parent class", ->
+      Foo = new Class({})
+      Rickshaw.register( Foo )
+      foo = new Foo()
+      Rickshaw.addParentClass( foo )
+      expect( foo._class ).toBe( Foo )
 
   describe "template loading", ->
     it "auto-detects and compiles templates", ->
@@ -25,7 +32,7 @@ describe "Rickshaw", ->
       # TODO
 
 describe "Rickshaw.Utils", ->
-  describe "equal", ->
+  describe "#equal()", ->
     it "determines if basic primitives are equal", ->
       expect( Rickshaw.Utils.equal( 0, 0 ) ).toBe( true )
       expect( Rickshaw.Utils.equal( 1, 2 ) ).toBe( false )
@@ -50,12 +57,46 @@ describe "Rickshaw.Utils", ->
       expect( Rickshaw.Utils.equal( {a: []}, {a: false} ) ).toBe( false )
       expect( Rickshaw.Utils.equal( {a: 1}, ["a", 1] ) ).toBe( false )
 
-  it "tells you if an object is a model instance", ->
-    expect( Rickshaw.Utils.isModelInstance( 1 ) ).toBe( false )
-    expect( Rickshaw.Utils.isModelInstance( {} ) ).toBe( false )
-    expect( Rickshaw.Utils.isModelInstance( Rickshaw.Model ) ).toBe( false )
-    expect( Rickshaw.Utils.isModelInstance( new Rickshaw.Model() ) ).toBe( false )
-    expect( Rickshaw.Utils.isModelInstance( new (new Rickshaw.Model())() ) ).toBe( true )
+  describe "#isModelInstance()", ->
+    it "tells you if an object is a model instance", ->
+      expect( Rickshaw.Utils.isModelInstance( 1 ) ).toBe( false )
+      expect( Rickshaw.Utils.isModelInstance( {} ) ).toBe( false )
+      expect( Rickshaw.Utils.isModelInstance( Rickshaw.Model ) ).toBe( false )
+      expect( Rickshaw.Utils.isModelInstance( new Rickshaw.Model() ) ).toBe( false )
+      expect( Rickshaw.Utils.isModelInstance( new (new Rickshaw.Model())() ) ).toBe( true )
+
+  describe "#findController()", ->
+    beforeEach ->
+      @Todo = new Rickshaw.Model()
+      @todo = new @Todo()
+      rickshawTemplate "todo", "
+        <p>Rad.</p>
+      "
+      @TodoController = new Rickshaw.Controller(
+        Template: "todo"
+        Events: p: click: -> console.log "SHIT"
+      )
+      @todoController = new @TodoController( @todo, $( "test" ) )
+
+    it "returns the correct controller instance for an element + event function", ->
+      element = $( "test" ).getElement( "p" )
+      event = @TodoController.prototype.Events.p.click
+      expect( Rickshaw.Utils.findController( element, event, "p", "click" ) ).toBe( @todoController )
+      try
+        Rickshaw.Utils.findController( element, (->), "p", "click" )
+        throw "Nothing was raised, but we expected an error."
+      catch error
+        # pass
+      try
+        Rickshaw.Utils.findController( element, event, "404", "click" )
+        throw "Nothing was raised, but we expected an error."
+      catch error
+        # pass
+      try
+        Rickshaw.Utils.findController( element, event, "p", "404" )
+        throw "Nothing was raised, but we expected an error."
+      catch error
+        # pass
 
 describe "MooTools extensions", ->
   describe "String", ->
