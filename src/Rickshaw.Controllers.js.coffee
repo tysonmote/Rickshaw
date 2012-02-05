@@ -364,10 +364,12 @@ Rickshaw._ListController = new Class({
     unless listWrapper
       throw new Error "Template \"#{@Template}\" doesn't have a `{{ list }}` placeholder."
 
+    listMetamorph = @_listMetamorph
+
     if position is "end"
       models.each (model) =>
         morph = this._setupListItemController( model )
-        morph.inject( listWrapper, "bottom" )
+        morph.inject( listMetamorph.endMarkerElement(), "before" )
       this._renderDelayedSubControllers()
     else if position is "beginning"
       models.reverse().each (model) =>

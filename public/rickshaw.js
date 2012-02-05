@@ -34,7 +34,7 @@
     addParentClass: function(object) {
       var uuid;
       if (!(uuid = object.$constructor.$uuid)) {
-        throw new Error("The given object doesn't have a parent Class with a UUID.");
+        throw new Error("The given object (" + (object.toString()) + ") doesn't have a parent Class with a UUID.");
       }
       return object._class = Rickshaw.get(uuid);
     },
@@ -626,7 +626,7 @@
       return this.parent(element);
     },
     toString: function() {
-      return "<Rickshaw.Controller>";
+      return "<Rickshaw.Controller " + this.$uuid + ">";
     },
     setModel: function(model, render) {
       if (render == null) render = true;
@@ -743,7 +743,7 @@
       });
     },
     _modelsAdded: function(collection, models, position) {
-      var listWrapper,
+      var listMetamorph, listWrapper,
         _this = this;
       if (position == null) position = "unknown";
       if (!(this.rendered && models.length > 0)) return;
@@ -751,11 +751,12 @@
       if (!listWrapper) {
         throw new Error("Template \"" + this.Template + "\" doesn't have a `{{ list }}` placeholder.");
       }
+      listMetamorph = this._listMetamorph;
       if (position === "end") {
         models.each(function(model) {
           var morph;
           morph = _this._setupListItemController(model);
-          return morph.inject(listWrapper, "bottom");
+          return morph.inject(listMetamorph.endMarkerElement(), "before");
         });
         return this._renderDelayedSubControllers();
       } else if (position === "beginning") {
@@ -842,25 +843,37 @@
       var firstChild;
       if (position == null) position = "bottom";
       element = $(element);
-      switch (location) {
-        case "top":
-          if (firstChild = element.getElement("*")) {
-            this._morph.above(firstChild);
-          } else {
-            this._morph.appendTo(element);
-          }
-          break;
-        case "before":
-          this._morph.above(element);
-          break;
-        case "after":
-          this._morph.below(element);
-          break;
-        default:
+      if (position === "top") {
+        if (firstChild = element.getElement("*")) {
+          this._injectBefore(firstChild);
+        } else {
           this._morph.appendTo(element);
+        }
+      } else if (position === "before") {
+        this._injectBefore(element);
+      } else if (position === "after") {
+        this._injectAfter(element);
+      } else if (position === "bottom") {
+        this._morph.appendTo(element);
+      } else {
+        throw new Error("\"" + position + "\" is not a valid metamorph inject position.");
       }
       this.startMarkerElement().store("rickshaw-controller", this.controller);
       return this;
+    },
+    _injectAfter: function(element) {
+      return this._rangedInject(element, "setStartAfter", "setEndAfter");
+    },
+    _injectBefore: function(element) {
+      return this._rangedInject(element, "setStartBefore", "setEndBefore");
+    },
+    _rangedInject: function(element, startMethod, endMethod) {
+      var fragment, range;
+      range = document.createRange();
+      range[startMethod](element);
+      range[endMethod](element);
+      fragment = range.createContextualFragment(this._morph.outerHTML());
+      return range.insertNode(fragment);
     },
     setHTML: function(html) {
       this._morph.html(html);

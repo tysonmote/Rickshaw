@@ -1,3 +1,6 @@
+# Metamorph extensions
+
+
 # Rickshaw.Metamorph
 # ==================
 #
@@ -26,20 +29,35 @@ Rickshaw.Metamorph = new Class({
   # Position can be "bottom" (default), "top", "after" or "before".
   inject: (element, position="bottom") ->
     element = $( element )
-    switch location
-      when "top"
-        if firstChild = element.getElement( "*" )
-          @_morph.above( firstChild )
-        else
-          @_morph.appendTo( element )
-      when "before"
-        @_morph.above( element )
-      when "after"
-        @_morph.below( element )
-      else # "bottom"
+    if position is "top"
+      if firstChild = element.getElement( "*" )
+        this._injectBefore( firstChild )
+      else
         @_morph.appendTo( element )
+    else if position is "before"
+      this._injectBefore( element )
+    else if position is "after"
+      this._injectAfter( element )
+    else if position is "bottom"
+      @_morph.appendTo( element )
+    else
+      throw new Error "\"#{position}\" is not a valid metamorph inject position."
+
     this.startMarkerElement().store( "rickshaw-controller", @controller )
     return this
+
+  _injectAfter: (element) ->
+    this._rangedInject( element, "setStartAfter", "setEndAfter" )
+
+  _injectBefore: (element) ->
+    this._rangedInject( element, "setStartBefore", "setEndBefore" )
+
+  _rangedInject: (element, startMethod, endMethod) ->
+    range = document.createRange()
+    range[startMethod]( element )
+    range[endMethod]( element )
+    fragment = range.createContextualFragment( @_morph.outerHTML() )
+    range.insertNode( fragment )
 
   # Inner HTML
   # ----------
