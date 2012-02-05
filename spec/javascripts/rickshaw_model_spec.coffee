@@ -85,22 +85,17 @@ describe "Rickshaw.Model", ->
     it "tracks dirty states of basic primitives", ->
       expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "done", false
-      expect( @todo.isDirty() ).toBe( false )
       expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "done", true
-      expect( @todo.isDirty() ).toBe( true )
       expect( @todo.dirtyProperties ).toEqual( ["done"] )
       @todo.set "title", "work"
-      expect( @todo.isDirty() ).toBe( true )
       expect( @todo.dirtyProperties ).toEqual( ["done", "title"] )
 
     it "tracks dirty states with custom setters", ->
       @todo = new @Todo({ title: "Work" })
       @todo.set "title", "work"
-      expect( @todo.isDirty() ).toBe( false )
       expect( @todo.dirtyProperties ).toEqual( [] )
       @todo.set "title", "play"
-      expect( @todo.isDirty() ).toBe( true )
       expect( @todo.dirtyProperties ).toEqual( ["title"] )
 
     it "tracks dirty states of arrays ", ->
