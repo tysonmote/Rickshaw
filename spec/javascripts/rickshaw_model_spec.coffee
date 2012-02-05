@@ -121,12 +121,16 @@ describe "Rickshaw.Model", ->
     it "fires change events", ->
       eventFired = false
       propertyEventFired = false
+      changeEventFired = false
       changedEvent = false
 
       @Todo = new Rickshaw.Model {
         onBlobChange: ->
           propertyEventFired = true
           @propertyEventFired = "yep"
+        onChange: ->
+          changeEventFired = true
+          @changeEventFired = "yep"
       }
       @todo = new @Todo { blob: "foo" }
       @todo.addEvent "blobChange", ->
@@ -137,14 +141,17 @@ describe "Rickshaw.Model", ->
       @todo.set "blob", "foo"
       expect( eventFired ).toBe( false )
       expect( propertyEventFired ).toBe( false )
+      expect( changeEventFired  ).toBe( false )
       expect( changedEvent ).toBe( false )
 
       @todo.set { blob: "bar", other: "rad" }
       expect( eventFired ).toBe( true )
       expect( propertyEventFired ).toBe( true )
+      expect( changeEventFired ).toBe( true )
       expect( changedEvent ).toEqual( [@todo, ["blob", "other"]] )
       expect( @todo.eventFired ).toEqual( "yep" )
       expect( @todo.propertyEventFired ).toEqual( "yep" )
+      expect( @todo.changeEventFired ).toEqual( "yep" )
 
     describe "#toggle()", ->
       beforeEach setupCustomMatchers

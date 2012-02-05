@@ -92,6 +92,8 @@ Rickshaw._Model = new Class({
       if match = name.match( /^on([A-Z])([A-Za-z]+Change)$/ )
         event = match[1].toLowerCase() + match[2]
         this.addEvent event, -> fn.apply( this, arguments )
+    if @__proto__.onChange
+      this.addEvent "change", -> @__proto__.onChange.apply( this, arguments )
 
   # Getters
   # -------

@@ -232,7 +232,7 @@
     },
     _attachEvents: function() {
       var _this = this;
-      return Object.each(this.__proto__, function(fn, name) {
+      Object.each(this.__proto__, function(fn, name) {
         var event, match;
         if (match = name.match(/^on([A-Z])([A-Za-z]+Change)$/)) {
           event = match[1].toLowerCase() + match[2];
@@ -241,6 +241,11 @@
           });
         }
       });
+      if (this.__proto__.onChange) {
+        return this.addEvent("change", function() {
+          return this.__proto__.onChange.apply(this, arguments);
+        });
+      }
     },
     get: function() {
       var properties,
