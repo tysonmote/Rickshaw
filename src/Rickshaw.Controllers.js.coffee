@@ -194,7 +194,7 @@ Rickshaw._Controller = new Class({
     this.setModel( model, false ) if model
     this.parent( element )
 
-  toString: -> "<Rickshaw.Controller>"
+  toString: -> "<Rickshaw.Controller #{@$uuid}>"
 
   # Sets this controller's associated model instance and re-renders all
   # Metamorphs.

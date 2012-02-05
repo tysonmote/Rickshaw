@@ -37,8 +37,7 @@ window.Rickshaw = {
 
   _uuidCounter: 0
 
-  # Returns random "short uuid" of the form: "rickshaw-xxxx-xxxx-xxxx-xxxx"
-  # Array.join() is faster than string concatenation here.
+  # Returns short unique id of the form: "rickshaw-\n+"
   uuid: ->
     "rickshaw-#{Rickshaw._uuidCounter++}"
 
@@ -48,7 +47,7 @@ window.Rickshaw = {
 
   addParentClass: (object) ->
     unless uuid = object.$constructor.$uuid
-      throw new Error "The given object doesn't have a parent Class with a UUID."
+      throw new Error "The given object (#{object.toString()}) doesn't have a parent Class with a UUID."
     object._class = Rickshaw.get( uuid )
 
   get: (uuid) ->
