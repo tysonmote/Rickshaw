@@ -60,22 +60,6 @@ describe "Rickshaw.Model", ->
       expect( @todo.get( "time" ) ).toEqual( "Today" )
       expect( @todo.get( "camelcaseText" ) ).toEqual( "ReadABook" )
 
-    it "returns clones of objects", ->
-      # To prevent unintentional modification
-      original = { a: true }
-      @todo = new @Todo({ blob: original })
-      expect( @todo.get( "blob" ) ).not.toBe( original )
-      @todo.get( "blob" ).a = false
-      expect( @todo.get( "blob" ) ).toEqual( { a: true } )
-
-    it "returns clones of arrays", ->
-      # To prevent unintentional modification
-      original = [1, 2]
-      @todo = new @Todo({ blob: original })
-      expect( @todo.get( "blob" ) ).not.toBe( original )
-      @todo.get( "blob" )[2] = 3
-      expect( @todo.get( "blob" ) ).toEqual( [ 1, 2 ] )
-
   describe "#set()", ->
     beforeEach ->
       @Todo = new Rickshaw.Model {

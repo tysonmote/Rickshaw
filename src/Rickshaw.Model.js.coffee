@@ -112,9 +112,9 @@ Rickshaw._Model = new Class({
 
   _get: (property) ->
     if customGetter = this["get#{property.forceCamelCase().capitalize()}"]
-      Rickshaw.Utils.clone customGetter.bind( this )()
+      customGetter.bind( this )()
     else
-      Rickshaw.Utils.clone @data[property]
+      @data[property]
 
   # Setters
   # -------
