@@ -311,7 +311,8 @@ Rickshaw._ListController = new Class({
     Object.each controllerClass.prototype.Events, (events, selector) ->
       Object.each events, (fn, type) ->
         listWrapper.addEvent "#{type}:relay(#{selector})", (e, target) ->
-          eventFn = controllerClass.prototype.Events[selector][type]
+          eventFn = controllerClass::Events[selector][type]
+          eventFn = controllerClass::[eventFn] if typeof eventFn is "string"
           unless eventFn
             throw new Error "Lost track of relayed event -- was it removed from the controller class?"
           controller = Rickshaw.Utils.findController( target, eventFn, selector, type )
