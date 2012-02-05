@@ -77,8 +77,8 @@ Rickshaw._Model = new Class({
   toString: -> "<Rickshaw.Model #{@$uuid}>"
 
   _initData: (data) ->
-    @Defaults = Object.clone @Defaults
-    defaults = Object.map @Defaults, (value, key) ->
+    # Resolve defaults
+    defaults = Object.map @__proto__.Defaults, (value, key) ->
       if typeof value is "function"
         value.apply this, [this]
       else
@@ -88,7 +88,7 @@ Rickshaw._Model = new Class({
     @dirtyProperties = []
 
   _attachEvents: ->
-    Object.each this.__proto__, (fn, name) =>
+    Object.each @__proto__, (fn, name) =>
       if match = name.match( /^on[A-Z][A-Za-z]+Change$/ )
         this.addEvent match[0], -> fn.apply( this, arguments )
 

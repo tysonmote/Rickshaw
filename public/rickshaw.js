@@ -219,8 +219,7 @@
     },
     _initData: function(data) {
       var defaults;
-      this.Defaults = Object.clone(this.Defaults);
-      defaults = Object.map(this.Defaults, function(value, key) {
+      defaults = Object.map(this.__proto__.Defaults, function(value, key) {
         if (typeof value === "function") {
           return value.apply(this, [this]);
         } else {
