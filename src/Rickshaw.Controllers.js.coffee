@@ -134,7 +134,7 @@ Rickshaw._BaseController = new Class({
 
 })
 
-# Rickshaw.Controller
+# Controller
 # ===================
 #
 # Render a single model using a template. Controllers can contain
@@ -150,7 +150,7 @@ Rickshaw._BaseController = new Class({
 #     <p>Hello, {{ fullName }}!</p>
 #     
 #     # Controller
-#     UserGreetingController = new Rickshaw.Controller({
+#     UserGreetingController = new Controller({
 #       Template: "user/greeting"
 #       fullName: -> "#{@model.firstName} #{@model.firstName}"
 #     })
@@ -163,7 +163,7 @@ Rickshaw._BaseController = new Class({
 #     <p>Hello, {{ firstName }}! {{ subController logoutFormController }}</p>
 #     
 #     # Controller
-#     UserGreetingController = new Rickshaw.Controller({
+#     UserGreetingController = new Controller({
 #       Template: "user/greeting"
 #       initialize: (user) ->
 #         @logoutFormController = new LogoutFormController( user )
@@ -194,7 +194,7 @@ Rickshaw._Controller = new Class({
     this.setModel( model, false ) if model
     this.parent( element )
 
-  toString: -> "<Rickshaw.Controller #{@$uuid}>"
+  toString: -> "<Controller #{@$uuid}>"
 
   # Sets this controller's associated model instance and re-renders all
   # Metamorphs.
@@ -229,29 +229,29 @@ Rickshaw._Controller = new Class({
 
 })
 
-Rickshaw.Controller = Rickshaw.Utils.subclassConstructor( Rickshaw._Controller )
+window.Controller = Rickshaw.Utils.subclassConstructor( Rickshaw._Controller )
 
-# Rickshaw.ListController
+# ListController
 # -----------------------
 #
-# Render a Rickshaw.List.
+# Render a List.
 #
 Rickshaw._ListController = new Class({
 
   Extends: Rickshaw._BaseController
 
-  # Attached Rickshaw.List instance. This is optionally set when this
+  # Attached List instance. This is optionally set when this
   # controller is created.
   collection: null
 
-  # Either a Rickshaw.Controller class or a function that takes a model
+  # Either a Controller class or a function that takes a model
   # instance and returns the correct controller class for that model.
   Subcontroller: ->
     throw new Error "Subcontroller not set for this ListController."
 
   # Params:
   #
-  #   * `collection` (Rickshaw.List) - Associated collection of model
+  #   * `collection` (List) - Associated collection of model
   #     elements to be rendered.
   #   * `element` (Element, Elements, String, null) - DOM element, elements,
   #     or element id that this controller's rendered template HTML is rendered
@@ -269,7 +269,7 @@ Rickshaw._ListController = new Class({
     @_hasRelayedEvents = {}
     this.parent( element )
 
-  toString: -> "<Rickshaw.ListController #{@$uuid}>"
+  toString: -> "<ListController #{@$uuid}>"
 
   # Sets this controller's associated collection instance and re-renders all
   # Metamorphs.
@@ -386,12 +386,12 @@ Rickshaw._ListController = new Class({
     this.render() if @rendered
 
   _modelChanged: (model, properties) ->
-    # The model's `Rickshaw.Controller` instace will re-render itself. Don't
-    # know if we actually need to do anything here until we implement filtering
-    # on ListControllers.
+    # The model's `Controller` instace will re-render itself. Don't know if we
+    # actually need to do anything here until we implement filtering on
+    # ListControllers.
 
   Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]
 
 })
 
-Rickshaw.ListController = Rickshaw.Utils.subclassConstructor( Rickshaw._ListController )
+window.ListController = Rickshaw.Utils.subclassConstructor( Rickshaw._ListController )

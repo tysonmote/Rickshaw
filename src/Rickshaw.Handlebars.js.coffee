@@ -1,12 +1,12 @@
-# Rickshaw.Handlebars
-# ===================
+# Handlebars
+# ==========
 #
 # Handlebars helpers for Rickshaw.
 
 # subController
 # -------------
 #
-# Render a Rickshaw.Controller / Rickshaw.ListController instance in-place.
+# Render a Controller / ListController instance in-place.
 #
 Handlebars.registerHelper "subController", (controller, options) ->
   unless arguments.length is 2
@@ -32,14 +32,14 @@ Handlebars.registerHelper "tag", (tag, options) ->
 # list
 # ----
 #
-# Render all elements of a Rickshaw.ListController. Any element events defined
+# Render all elements of a ListController. Any element events defined
 # by the subcontroller will be attached to the list wrapper element as relay
 # events. This is significantly faster than attaching events to every list
 # item's elements individually.
 #
 Handlebars.registerHelper "list", (wrapperSelector, options) ->
   unless typeOf( @collection ) is "array"
-    throw new Error "You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template."
+    throw new Error "You can only use the \"list\" Handlebars helper in a ListController template."
 
   unless options
     options = wrapperSelector

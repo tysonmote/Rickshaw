@@ -314,13 +314,13 @@
     Binds: ["_get", "_set"]
   });
 
-  Model = Rickshaw.Utils.subclassConstructor(Rickshaw._Model);
+  window.Model = Rickshaw.Utils.subclassConstructor(Rickshaw._Model);
 
   Rickshaw._List = new Class({
     Extends: Array,
     Implements: [Events],
     ModelClass: function() {
-      throw new Error("No ModelClass has been defined for this Rickshaw.List");
+      throw new Error("No ModelClass has been defined for this List");
     },
     initialize: function() {
       Rickshaw.register(this);
@@ -328,7 +328,7 @@
       return this;
     },
     toString: function() {
-      return "<Rickshaw.List " + this.$uuid + ">";
+      return "<List " + this.$uuid + ">";
     },
     uuids: function() {
       return this.mapProperty("$uuid");
@@ -507,7 +507,7 @@
     Binds: ["_modelChanged", "_modelDeleted", "_preattachModel", "_detachModel"]
   });
 
-  Rickshaw.List = Rickshaw.Utils.subclassConstructor(Rickshaw._List);
+  window.List = Rickshaw.Utils.subclassConstructor(Rickshaw._List);
 
   Rickshaw._BaseController = new Class({
     Implements: [Events],
@@ -628,7 +628,7 @@
       return this.parent(element);
     },
     toString: function() {
-      return "<Rickshaw.Controller " + this.$uuid + ">";
+      return "<Controller " + this.$uuid + ">";
     },
     setModel: function(model, render) {
       if (render == null) render = true;
@@ -659,7 +659,7 @@
     Binds: ["_modelChanged"]
   });
 
-  Rickshaw.Controller = Rickshaw.Utils.subclassConstructor(Rickshaw._Controller);
+  window.Controller = Rickshaw.Utils.subclassConstructor(Rickshaw._Controller);
 
   Rickshaw._ListController = new Class({
     Extends: Rickshaw._BaseController,
@@ -677,7 +677,7 @@
       return this.parent(element);
     },
     toString: function() {
-      return "<Rickshaw.ListController " + this.$uuid + ">";
+      return "<ListController " + this.$uuid + ">";
     },
     setList: function(collection, render) {
       if (render == null) render = true;
@@ -783,7 +783,7 @@
     Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]
   });
 
-  Rickshaw.ListController = Rickshaw.Utils.subclassConstructor(Rickshaw._ListController);
+  window.ListController = Rickshaw.Utils.subclassConstructor(Rickshaw._ListController);
 
   Handlebars.registerHelper("subController", function(controller, options) {
     var morph;
@@ -805,7 +805,7 @@
     var html, splitWrapperTag,
       _this = this;
     if (typeOf(this.collection) !== "array") {
-      throw new Error("You can only use the \"list\" Handlebars helper in a Rickshaw.ListController template.");
+      throw new Error("You can only use the \"list\" Handlebars helper in a ListController template.");
     }
     if (!options) {
       options = wrapperSelector;

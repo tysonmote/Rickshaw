@@ -72,7 +72,7 @@ describe "Rickshaw.Utils", ->
       rickshawTemplate "todo", "
         <p>Rad.</p>
       "
-      @TodoController = new Rickshaw.Controller(
+      @TodoController = new Controller(
         Template: "todo"
         Events: p: click: -> console.log "SHIT"
       )

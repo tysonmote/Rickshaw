@@ -3,14 +3,14 @@ require "/vendor/handlebars.js"
 require "/vendor/metamorph.js"
 require "/rickshaw.js"
 
-describe "Rickshaw.Controller", ->
+describe "Controller", ->
   beforeEach setupCustomMatchers
 
   describe "creating", ->
     beforeEach ->
       @Todo = new Model()
       @todo = new @Todo {num: "one"}
-      @TodoController = new Rickshaw.Controller({
+      @TodoController = new Controller({
         Template: "todo"
       })
 
@@ -29,11 +29,11 @@ describe "Rickshaw.Controller", ->
     it "attaches on initialize", ->
       fired = false
       args = null
-      Controller = new Rickshaw.Controller
+      MyController = new Controller
         onCoolEvent: ->
           fired = true
           args = Array.from( arguments )
-      controller = new Controller()
+      controller = new MyController()
       controller.fireEvent( "coolEvent", [1, "cool"] )
       expect( fired ).toBe( true )
       expect( args ).toEqualArray( [1, "cool"] )
@@ -42,7 +42,7 @@ describe "Rickshaw.Controller", ->
     beforeEach ->
       @Todo = new Model()
       @todo = new @Todo {num: "one"}
-      @TodoController = new Rickshaw.Controller({
+      @TodoController = new Controller({
         Template: "todo"
       })
       @todoController = new @TodoController()
@@ -66,7 +66,7 @@ describe "Rickshaw.Controller", ->
     beforeEach ->
       @Todo = new Model()
       @todo = new @Todo num: "one"
-      @TodoController = new Rickshaw.Controller DeferToModel: ["num"]
+      @TodoController = new Controller DeferToModel: ["num"]
       @todoController = new @TodoController @todo
 
     it "should be able to defer methods to the model", ->
@@ -76,7 +76,7 @@ describe "Rickshaw.Controller", ->
     beforeEach ->
       @Todo = new Model()
       @todo = new @Todo {text: "do stuff"}
-      @TodoController = new Rickshaw.Controller({
+      @TodoController = new Controller({
         Template: "todo"
         klass: -> "neato"
         text: -> "TODO: #{@model.get('text')}"

@@ -1,14 +1,14 @@
 // Models
 Todo = new Model();
-TodoList = new Rickshaw.List({ ModelClass: Todo });
+TodoList = new List({ ModelClass: Todo });
 
 // Controllers
-TodoController = new Rickshaw.Controller({
+TodoController = new Controller({
   Template: "todo",
   Events: { li: { click: function() { console.log( this, arguments ); } } },
   content: function() { return "#" + this.model.get( "index" ); }
 });
-TodoListController = new Rickshaw.ListController({
+TodoListController = new ListController({
   Template: "todos",
   Subcontroller: TodoController
 });

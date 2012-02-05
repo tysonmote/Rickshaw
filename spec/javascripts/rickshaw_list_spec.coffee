@@ -3,15 +3,15 @@ require "/vendor/handlebars.js"
 require "/vendor/metamorph.js"
 require "/rickshaw.js"
 
-describe "Rickshaw.List", ->
+describe "List", ->
   beforeEach setupCustomMatchers
   beforeEach ->
     @Todo = Todo = new Model()
     @MegaTodo = MegaTodo = new Model()
-    @TodoList = new Rickshaw.List {
+    @TodoList = new List {
       ModelClass: Todo
     }
-    @CombinedTodoList = new Rickshaw.List {
+    @CombinedTodoList = new List {
       ModelClass: (data) ->
         if data.isMegaTodo then MegaTodo else Todo
     }

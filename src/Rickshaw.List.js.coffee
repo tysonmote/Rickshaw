@@ -1,7 +1,7 @@
-# Rickshaw.List
-# =============
+# List
+# ====
 #
-# Array-like list of Model instances.
+# Array subclass for Model instances.
 #
 # Events
 # ------
@@ -29,7 +29,7 @@ Rickshaw._List = new Class({
   # given. If this is a function, it'll be passed the model data and it
   # should return the correct model class for the data.
   ModelClass: ->
-    throw new Error "No ModelClass has been defined for this Rickshaw.List"
+    throw new Error "No ModelClass has been defined for this List"
 
   # Setup
   # -----
@@ -39,7 +39,7 @@ Rickshaw._List = new Class({
     this.push.apply( this, arguments ) if arguments.length > 0
     return this
 
-  toString: -> "<Rickshaw.List #{@$uuid}>"
+  toString: -> "<List #{@$uuid}>"
 
   # Array of all model UUIDs. Used for detecting changes after sorts without
   # assuming that every sort actually changed the sort order.
@@ -216,4 +216,4 @@ Rickshaw._List = new Class({
   Binds: ["_modelChanged", "_modelDeleted", "_preattachModel", "_detachModel"]
 })
 
-Rickshaw.List = Rickshaw.Utils.subclassConstructor( Rickshaw._List )
+window.List = Rickshaw.Utils.subclassConstructor( Rickshaw._List )

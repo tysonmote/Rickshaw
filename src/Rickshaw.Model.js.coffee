@@ -168,4 +168,4 @@ Rickshaw._Model = new Class({
 
 })
 
-Model = Rickshaw.Utils.subclassConstructor Rickshaw._Model
+window.Model = Rickshaw.Utils.subclassConstructor Rickshaw._Model
