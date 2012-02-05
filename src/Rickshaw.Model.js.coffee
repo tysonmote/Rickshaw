@@ -74,6 +74,8 @@ Rickshaw._Model = new Class({
     this._attachEvents()
     return this
 
+  toString: -> "<Rickshaw.Model #{@$uuid}>"
+
   _initData: (data) ->
     @Defaults = Object.clone @Defaults
     defaults = Object.map @Defaults, (value, key) ->

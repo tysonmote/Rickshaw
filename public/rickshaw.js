@@ -3,6 +3,9 @@
     __slice = Array.prototype.slice;
 
   window.Rickshaw = {
+    toString: function() {
+      return "<Rickshaw global>";
+    },
     version: "0.0.1",
     Templates: {},
     _objects: {},
@@ -216,6 +219,9 @@
       this._attachEvents();
       return this;
     },
+    toString: function() {
+      return "<Rickshaw.Model " + this.$uuid + ">";
+    },
     _initData: function(data) {
       var defaults;
       this.Defaults = Object.clone(this.Defaults);
@@ -323,6 +329,9 @@
       Rickshaw.register(this);
       if (arguments.length > 0) this.push.apply(this, arguments);
       return this;
+    },
+    toString: function() {
+      return "<Rickshaw.List " + this.$uuid + ">";
     },
     uuids: function() {
       return this.mapProperty("$uuid");
@@ -621,6 +630,9 @@
       if (model) this.setModel(model, false);
       return this.parent(element);
     },
+    toString: function() {
+      return "<Rickshaw.Controller>";
+    },
     setModel: function(model, render) {
       if (render == null) render = true;
       if (this.model) this._detachModelEvents(this.model);
@@ -666,6 +678,9 @@
       this._listMetamorph = null;
       this._hasRelayedEvents = {};
       return this.parent(element);
+    },
+    toString: function() {
+      return "<Rickshaw.ListController " + this.$uuid + ">";
     },
     setList: function(collection, render) {
       if (render == null) render = true;
@@ -824,6 +839,9 @@
       Rickshaw.register(this);
       this._morph = Metamorph(html);
       return this;
+    },
+    toString: function() {
+      return "<Rickshaw.Metamorph " + this.$uuid + ">";
     },
     inject: function(element, position) {
       var firstChild;

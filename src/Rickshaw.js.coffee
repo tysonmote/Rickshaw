@@ -6,6 +6,8 @@
 #
 window.Rickshaw = {
 
+  toString: -> "<Rickshaw global>"
+
   version: "0.0.1"
 
   Templates: {}

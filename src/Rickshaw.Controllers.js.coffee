@@ -194,6 +194,8 @@ Rickshaw._Controller = new Class({
     this.setModel( model, false ) if model
     this.parent( element )
 
+  toString: -> "<Rickshaw.Controller>"
+
   # Sets this controller's associated model instance and re-renders all
   # Metamorphs.
   setModel: (model, render=true) ->
@@ -266,6 +268,8 @@ Rickshaw._ListController = new Class({
     # set up relay events for.
     @_hasRelayedEvents = {}
     this.parent( element )
+
+  toString: -> "<Rickshaw.ListController #{@$uuid}>"
 
   # Sets this controller's associated collection instance and re-renders all
   # Metamorphs.

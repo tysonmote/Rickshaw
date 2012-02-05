@@ -17,6 +17,8 @@ Rickshaw.Metamorph = new Class({
     @_morph = Metamorph( html )
     return this
 
+  toString: -> "<Rickshaw.Metamorph #{@$uuid}>"
+
   # Injecting
   # ---------
 
