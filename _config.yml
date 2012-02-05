@@ -8,3 +8,7 @@ exclude:
   - Gemfile.lock
   - sass
   - Procfile
+lcb: "{"
+rcb: "}"
+lcbs: "{{"
+rcbs: "}}"
