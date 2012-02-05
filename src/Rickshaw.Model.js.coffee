@@ -102,7 +102,7 @@ Rickshaw._Model = new Class({
   # -------
 
   # Return the value of the given property, using a custom getter (if defined).
-  # If many properties are passed, an object is passed.
+  # If many properties are passed, an object is returned.
   get: ->
     properties = Array.from( arguments ).flatten()
     if properties.length > 1

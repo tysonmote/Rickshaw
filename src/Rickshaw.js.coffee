@@ -48,7 +48,7 @@ window.Rickshaw = {
 
   addParentClass: (object) ->
     unless uuid = object.$constructor.$uuid
-      throw "The given object doesn't have a parent Class with a UUID."
+      throw new Error "The given object doesn't have a parent Class with a UUID."
     object._class = Rickshaw.get( uuid )
 
   get: (uuid) ->

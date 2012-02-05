@@ -28,7 +28,8 @@ Rickshaw._List = new Class({
   # Default model class used when data (rather than model instances) are
   # given. If this is a function, it'll be passed the model data and it
   # should return the correct model class for the data.
-  ModelClass: Rickshaw.Model
+  ModelClass: ->
+    throw new Error "No ModelClass has been defined for this Rickshaw.List"
 
   # Setup
   # -----
