@@ -1,0 +1,8 @@
+safe: true
+lsi: false
+pygments: true
+auto: true
+markdown: rdiscount
+exclude:
+  - Gemfile
+  - Gemfile.lock
