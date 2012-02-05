@@ -5,7 +5,7 @@ require "/rickshaw.js"
 
 describe "Rickshaw", ->
   describe "UUIDs", ->
-    UUID_REGEX = /^rickshaw-[0-9a-f]{8}-[0-9a-f]{8}$/
+    UUID_REGEX = /^rickshaw-[0-9]+$/
 
     it "generates unique UUIDs", ->
       expect( Rickshaw.uuid() ).toMatch( UUID_REGEX )

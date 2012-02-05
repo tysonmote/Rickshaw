@@ -23,14 +23,9 @@
       });
       return Rickshaw.Templates;
     },
+    _uuidCounter: 0,
     uuid: function() {
-      var i, str;
-      str = ["rickshaw-"];
-      i = 0;
-      while (i++ < 17) {
-        str.push(i !== 9 ? Math.round(Math.random() * 15).toString(16) : "-");
-      }
-      return str.join("");
+      return "rickshaw-" + (Rickshaw._uuidCounter++);
     },
     register: function(object) {
       object.$uuid = Rickshaw.uuid();

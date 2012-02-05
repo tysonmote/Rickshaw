@@ -35,14 +35,12 @@ window.Rickshaw = {
     )
     Rickshaw.Templates
 
+  _uuidCounter: 0
+
   # Returns random "short uuid" of the form: "rickshaw-xxxx-xxxx-xxxx-xxxx"
   # Array.join() is faster than string concatenation here.
   uuid: ->
-    str = ["rickshaw-"]
-    i = 0
-    while i++ < 17
-      str.push if i != 9 then Math.round(Math.random() * 15).toString(16) else "-"
-    str.join( "" )
+    "rickshaw-#{Rickshaw._uuidCounter++}"
 
   register: (object) ->
     object.$uuid = Rickshaw.uuid()
