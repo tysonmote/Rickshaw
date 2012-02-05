@@ -3,9 +3,11 @@ layout: page
 title: Rickshaw.js
 ---
 
-Rickshaw.js is an in-progress client-side MVC framework based on MooTools. The ultimate aim is to create an MVC framework that is fun to use. That means Rickshaw.js will have a simple API and will eliminate boilerplate wherever possible. Also: MooTools <3
+Rickshaw.js is an in-progress client-side MVC framework based on MooTools. The ultimate aim is to create an MVC framework that is fun to use and isn't a complete turd in the real world. That means it will have a simple API, eliminate boilerplate wherever possible, and remain snappy in the face of large projects. Also: MooTools <3
 
-More information is coming soon, as Rickshaw.js is a work in progress. See the [GitHub page](github.com/tysontate/Rickshaw) for more information.
+Rickshaw uses [Handlebars](http://handlebarsjs.com) for view templating.
+
+*More information is coming soon, as Rickshaw.js is a work in progress. See the [GitHub page](github.com/tysontate/Rickshaw) for more information.*
 
 ## Rickshaw.Model
 
