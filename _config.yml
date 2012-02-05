@@ -6,3 +6,5 @@ markdown: rdiscount
 exclude:
   - Gemfile
   - Gemfile.lock
+  - sass
+  - Procfile
