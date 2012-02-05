@@ -897,10 +897,7 @@
     rootElements: function() {
       var el, i, idMatch, nextElements, rootElements, seekEndId, selfIndex, start, _len;
       if (!(start = this.startMarkerElement())) {
-        raise({
-          name: "MetamorphNotRendered",
-          message: "This Metamorph hasn't been inserted into the DOM yet."
-        });
+        throw new Error("This Metamorph hasn't been inserted into the DOM yet.");
       }
       rootElements = new Elements();
       selfIndex = parseInt(this._morph.start.match(/\d+/));
