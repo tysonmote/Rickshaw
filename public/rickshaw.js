@@ -36,7 +36,7 @@
     addParentClass: function(object) {
       var uuid;
       if (!(uuid = object.$constructor.$uuid)) {
-        throw "The given object doesn't have a parent Class with a UUID.";
+        throw new Error("The given object doesn't have a parent Class with a UUID.");
       }
       return object._class = Rickshaw.get(uuid);
     },
@@ -86,8 +86,17 @@
     findController: function(element, eventFn, eventSelector, eventType) {
       var cursor, findPreviousMetamorphStart, isMatchingMetamorph;
       isMatchingMetamorph = function(element) {
-        var controller, _ref;
-        return element.tagName === "SCRIPT" && element.id && element.id.match(/^metamorph-\d+-start$/) && (controller = element.retrieve("rickshaw-controller")) && ((_ref = controller.Events[eventSelector]) != null ? _ref[eventType] : void 0) === eventFn;
+        var controller, controllerFn, _ref, _ref2;
+        if (!(element.tagName === "SCRIPT" && ((_ref = element.id) != null ? _ref.match(/^metamorph-\d+-start$/) : void 0))) {
+          return false;
+        }
+        controller = element.retrieve("rickshaw-controller");
+        if (!controller) return false;
+        controllerFn = (_ref2 = controller.Events[eventSelector]) != null ? _ref2[eventType] : void 0;
+        if (typeof controllerFn === "string") {
+          controllerFn = controller[controllerFn];
+        }
+        return controllerFn === eventFn;
       };
       findPreviousMetamorphStart = function(element) {
         var parent, previous;
@@ -250,9 +259,9 @@
     _get: function(property) {
       var customGetter;
       if (customGetter = this["get" + (property.forceCamelCase().capitalize())]) {
-        return Rickshaw.Utils.clone(customGetter.bind(this)());
+        return customGetter.bind(this)();
       } else {
-        return Rickshaw.Utils.clone(this.data[property]);
+        return this.data[property];
       }
     },
     set: function(property, value) {
@@ -307,7 +316,9 @@
   Rickshaw._List = new Class({
     Extends: Array,
     Implements: [Events],
-    ModelClass: Rickshaw.Model,
+    ModelClass: function() {
+      throw new Error("No ModelClass has been defined for this Rickshaw.List");
+    },
     initialize: function() {
       Rickshaw.register(this);
       if (arguments.length > 0) this.push.apply(this, arguments);
@@ -692,6 +703,9 @@
           return listWrapper.addEvent("" + type + ":relay(" + selector + ")", function(e, target) {
             var eventFn;
             eventFn = controllerClass.prototype.Events[selector][type];
+            if (typeof eventFn === "string") {
+              eventFn = controllerClass.prototype[eventFn];
+            }
             if (!eventFn) {
               throw new Error("Lost track of relayed event -- was it removed from the controller class?");
             }
@@ -724,6 +738,9 @@
       if (position == null) position = "unknown";
       if (!(this.rendered && models.length > 0)) return;
       listWrapper = this._listWrapper();
+      if (!listWrapper) {
+        throw new Error("Template \"" + this.Template + "\" doesn't have a `{{ list }}` placeholder.");
+      }
       if (position === "end") {
         models.each(function(model) {
           var morph;
