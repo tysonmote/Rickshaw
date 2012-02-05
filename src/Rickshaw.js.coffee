@@ -87,7 +87,7 @@ Rickshaw.Utils = {
       Rickshaw.register constructor
       return constructor
 
-  # Returns true if the given item is an instance of a Rickshaw.Model subclass.
+  # Returns true if the given item is an instance of a Model subclass.
   isModelInstance: (item) ->
     !!( item.$uuid && item._get && item._set && item.data )
 

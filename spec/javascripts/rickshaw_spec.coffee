@@ -61,13 +61,13 @@ describe "Rickshaw.Utils", ->
     it "tells you if an object is a model instance", ->
       expect( Rickshaw.Utils.isModelInstance( 1 ) ).toBe( false )
       expect( Rickshaw.Utils.isModelInstance( {} ) ).toBe( false )
-      expect( Rickshaw.Utils.isModelInstance( Rickshaw.Model ) ).toBe( false )
-      expect( Rickshaw.Utils.isModelInstance( new Rickshaw.Model() ) ).toBe( false )
-      expect( Rickshaw.Utils.isModelInstance( new (new Rickshaw.Model())() ) ).toBe( true )
+      expect( Rickshaw.Utils.isModelInstance( Model ) ).toBe( false )
+      expect( Rickshaw.Utils.isModelInstance( new Model() ) ).toBe( false )
+      expect( Rickshaw.Utils.isModelInstance( new (new Model())() ) ).toBe( true )
 
   describe "#findController()", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model()
+      @Todo = new Model()
       @todo = new @Todo()
       rickshawTemplate "todo", "
         <p>Rad.</p>

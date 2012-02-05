@@ -6,8 +6,8 @@ require "/rickshaw.js"
 describe "Rickshaw.List", ->
   beforeEach setupCustomMatchers
   beforeEach ->
-    @Todo = Todo = new Rickshaw.Model()
-    @MegaTodo = MegaTodo = new Rickshaw.Model()
+    @Todo = Todo = new Model()
+    @MegaTodo = MegaTodo = new Model()
     @TodoList = new Rickshaw.List {
       ModelClass: Todo
     }

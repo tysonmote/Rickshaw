@@ -8,7 +8,7 @@ describe "Rickshaw.Controller", ->
 
   describe "creating", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model()
+      @Todo = new Model()
       @todo = new @Todo {num: "one"}
       @TodoController = new Rickshaw.Controller({
         Template: "todo"
@@ -40,7 +40,7 @@ describe "Rickshaw.Controller", ->
 
   describe "model events", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model()
+      @Todo = new Model()
       @todo = new @Todo {num: "one"}
       @TodoController = new Rickshaw.Controller({
         Template: "todo"
@@ -64,7 +64,7 @@ describe "Rickshaw.Controller", ->
 
   describe "defer to model", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model()
+      @Todo = new Model()
       @todo = new @Todo num: "one"
       @TodoController = new Rickshaw.Controller DeferToModel: ["num"]
       @todoController = new @TodoController @todo
@@ -74,7 +74,7 @@ describe "Rickshaw.Controller", ->
 
   describe "rendering", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model()
+      @Todo = new Model()
       @todo = new @Todo {text: "do stuff"}
       @TodoController = new Rickshaw.Controller({
         Template: "todo"

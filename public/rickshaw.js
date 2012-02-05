@@ -215,7 +215,7 @@
       return this;
     },
     toString: function() {
-      return "<Rickshaw.Model " + this.$uuid + ">";
+      return "<Model " + this.$uuid + ">";
     },
     _initData: function(data) {
       var defaults;
@@ -314,7 +314,7 @@
     Binds: ["_get", "_set"]
   });
 
-  Rickshaw.Model = Rickshaw.Utils.subclassConstructor(Rickshaw._Model);
+  Model = Rickshaw.Utils.subclassConstructor(Rickshaw._Model);
 
   Rickshaw._List = new Class({
     Extends: Array,

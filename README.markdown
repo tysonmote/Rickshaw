@@ -12,7 +12,7 @@ Here is a brief to-do list example, as is required by law:
 
 **Model and List**
 
-    Todo = new Rickshaw.Model(
+    Todo = new Model(
       isDone: -> !!this.get( "done" )
     )
     TodoList = new Rickshaw.List( ModelClass: Todo )

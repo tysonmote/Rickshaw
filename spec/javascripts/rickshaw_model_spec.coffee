@@ -3,10 +3,10 @@ require "/vendor/handlebars.js"
 require "/vendor/metamorph.js"
 require "/rickshaw.js"
 
-describe "Rickshaw.Model", ->
+describe "Model", ->
   describe "creating", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model()
+      @Todo = new Model()
 
     it "creates an instance", ->
       todo = new @Todo()
@@ -14,12 +14,12 @@ describe "Rickshaw.Model", ->
 
   describe "subclassing", ->
     it "works", ->
-      Todo = new Rickshaw.Model {
+      Todo = new Model {
         isTodo: true
         getThis: -> this
       }
 
-      MegaTodo = new Rickshaw.Model {
+      MegaTodo = new Model {
         Extends: Todo
         isTodo: false
         isMegaTodo: true
@@ -33,7 +33,7 @@ describe "Rickshaw.Model", ->
 
   describe "#get()", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model {
+      @Todo = new Model {
         Defaults: { rad: true, neat: -> "yes" }
         getTime: -> @data.time.capitalize()
         getCamelcaseText: -> this.get( "text" ).forceCamelCase()
@@ -62,7 +62,7 @@ describe "Rickshaw.Model", ->
 
   describe "#set()", ->
     beforeEach ->
-      @Todo = new Rickshaw.Model {
+      @Todo = new Model {
         Defaults: { done: false }
         setTitle: (title) -> return title.capitalize()
         setCoolCat: (value) -> return "#{value}"
@@ -124,7 +124,7 @@ describe "Rickshaw.Model", ->
       changeEventFired = false
       changedEvent = false
 
-      @Todo = new Rickshaw.Model {
+      @Todo = new Model {
         onBlobChange: ->
           propertyEventFired = true
           @propertyEventFired = "yep"
@@ -156,7 +156,7 @@ describe "Rickshaw.Model", ->
     describe "#toggle()", ->
       beforeEach setupCustomMatchers
       beforeEach ->
-        @Todo = new Rickshaw.Model {
+        @Todo = new Model {
           getDone: -> @data.done == "true"
           setDone: (value) -> return "#{value}"
         }

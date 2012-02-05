@@ -1,5 +1,5 @@
-# Rickshaw.Model
-# ==============
+# Model
+# =====
 #
 # The base building block of a Rickshaw app. Has data, fires events when said
 # data changes.
@@ -17,7 +17,7 @@
 # Custom Getters / Setters
 # ------------------------
 #
-#     User = new Rickshaw.Model({
+#     User = new Model({
 #       setName: (name) ->
 #         [first, last] = name.split( " " )
 #         this.set( "firstName", first )
@@ -29,7 +29,7 @@
 # Custom setters should return `true` if the property was actually changed and
 # `false` otherwise.
 #
-#     User = new Rickshaw.Model({
+#     User = new Model({
 #       setFirstName: (firstName) ->
 #         firstName = firstName.capitalize()
 #         return false if @data.firstName == firstName
@@ -40,7 +40,7 @@
 # Examples
 # --------
 #
-#     User = new Rickshaw.Model({
+#     User = new Model({
 #       getName: ->
 #         [this.get( "firstName" ), this.get( "lastName" )].join( " " )
 #       onLastNameChange: -> console.log( "*marraige bells*" )
@@ -74,7 +74,7 @@ Rickshaw._Model = new Class({
     this._attachEvents()
     return this
 
-  toString: -> "<Rickshaw.Model #{@$uuid}>"
+  toString: -> "<Model #{@$uuid}>"
 
   _initData: (data) ->
     # Resolve defaults
@@ -168,4 +168,4 @@ Rickshaw._Model = new Class({
 
 })
 
-Rickshaw.Model = Rickshaw.Utils.subclassConstructor Rickshaw._Model
+Model = Rickshaw.Utils.subclassConstructor Rickshaw._Model

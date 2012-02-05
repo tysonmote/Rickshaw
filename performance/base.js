@@ -1,5 +1,5 @@
 // Models
-Todo = new Rickshaw.Model();
+Todo = new Model();
 TodoList = new Rickshaw.List({ ModelClass: Todo });
 
 // Controllers

@@ -185,7 +185,7 @@ Rickshaw._Controller = new Class({
 
   # Params:
   #
-  #   * `model` (Rickshaw.Model) - Associated model.
+  #   * `model` (Model) - Associated model.
   #   * `element` (Element, Elements, String, null) - DOM element, elements,
   #     or element id that this controller's rendered template HTML is rendered
   #     to. If this is null, it can be set to an Element or Elements later (as
