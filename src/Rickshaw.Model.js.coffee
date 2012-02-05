@@ -89,8 +89,9 @@ Rickshaw._Model = new Class({
 
   _attachEvents: ->
     Object.each @__proto__, (fn, name) =>
-      if match = name.match( /^on[A-Z][A-Za-z]+Change$/ )
-        this.addEvent match[0], -> fn.apply( this, arguments )
+      if match = name.match( /^on([A-Z])([A-Za-z]+Change)$/ )
+        event = match[1].toLowerCase() + match[2]
+        this.addEvent event, -> fn.apply( this, arguments )
 
   # State
   # -----

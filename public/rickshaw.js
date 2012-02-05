@@ -233,9 +233,10 @@
     _attachEvents: function() {
       var _this = this;
       return Object.each(this.__proto__, function(fn, name) {
-        var match;
-        if (match = name.match(/^on[A-Z][A-Za-z]+Change$/)) {
-          return _this.addEvent(match[0], function() {
+        var event, match;
+        if (match = name.match(/^on([A-Z])([A-Za-z]+Change)$/)) {
+          event = match[1].toLowerCase() + match[2];
+          return _this.addEvent(event, function() {
             return fn.apply(this, arguments);
           });
         }
