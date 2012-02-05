@@ -242,9 +242,6 @@
         }
       });
     },
-    isDirty: function() {
-      return this.dirtyProperties.length > 0;
-    },
     get: function() {
       var properties,
         _this = this;

@@ -93,14 +93,6 @@ Rickshaw._Model = new Class({
         event = match[1].toLowerCase() + match[2]
         this.addEvent event, -> fn.apply( this, arguments )
 
-  # State
-  # -----
-
-  # Returns true if this model contains data that hasn't been persisted yet.
-  # TODO: Move to persistence layer.
-  isDirty: ->
-    @dirtyProperties.length > 0
-
   # Getters
   # -------
 
