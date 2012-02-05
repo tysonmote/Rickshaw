@@ -96,13 +96,17 @@ Rickshaw.Utils = {
   # method returns the correct controller instance. This is nasty as shit, yo.
   findController: (element, eventFn, eventSelector, eventType) ->
     isMatchingMetamorph = (element) ->
-      return element.tagName is "SCRIPT" and
-      element.id and
-      element.id.match( /^metamorph-\d+-start$/ ) and
-      ( controller = element.retrieve( "rickshaw-controller" ) ) and
-      controller.Events[eventSelector]?[eventType] == eventFn
+      unless element.tagName is "SCRIPT" and element.id?.match( /^metamorph-\d+-start$/ )
+        return false
+      controller = element.retrieve( "rickshaw-controller" )
+      return false unless controller
+      controllerFn = controller.Events[eventSelector]?[eventType]
+      # Resolve to instance method
+      controllerFn = controller[controllerFn] if typeof controllerFn is "string"
+      return controllerFn == eventFn
 
-    # Find previous sibling metamorph start tag, walking up the tree if necessary
+    # Find previous sibling metamorph start tag, walking up the tree if
+    # necessary.
     findPreviousMetamorphStart = (element) ->
       if previous = element.getPrevious( "script[type='text/x-placeholder']" )
         return previous
