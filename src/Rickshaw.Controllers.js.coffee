@@ -57,8 +57,9 @@ Rickshaw._BaseController = new Class({
   render: ->
     return false unless this._preRender( @_metamorphs )
     html = this._html()
-    @_metamorphs.each (morph) => this._renderMetamorph( morph, html, false )
-    this._postRender()
+    @_metamorphs.each (morph) =>
+      this._renderMetamorph( morph, html, false )
+      this._postRender( morph )
     return true
 
   # Renders to the bottom of the given element. Other render destinations
@@ -71,7 +72,7 @@ Rickshaw._BaseController = new Class({
     morph.inject( element )
     this._preRender( [morph] )
     this._renderMetamorph( morph )
-    this._postRender()
+    this._postRender( morph )
     return true
 
   # Returns true if we should continue with rendering the given metamorphs.
@@ -90,8 +91,8 @@ Rickshaw._BaseController = new Class({
     this._renderDelayedSubControllers()
     @rendered = true
 
-  _postRender: ->
-    this.fireEvent( "afterRender", this )
+  _postRender: (morph) ->
+    this.fireEvent( "afterRender", [this, morph] )
 
   _html: ->
     if template = Rickshaw.Templates[@Template]
