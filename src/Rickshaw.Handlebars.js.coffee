@@ -52,7 +52,7 @@ Handlebars.registerHelper "list", (wrapperSelector, options) ->
     wrapperSelector += "##{Rickshaw.uuid()}"
   @_listWrapperSelector = wrapperSelector
   splitWrapperTag = ( new Element( wrapperSelector ) ).outerHTML.match( /(<\w+[^>]+>)(<\/\w+>)/ )
-  @_listMetamorph = new Rickshaw.Metamorph( this )
+  @_listMetamorph = this._setupListMetamorph()
 
   html = []
   html.push( splitWrapperTag[1] )

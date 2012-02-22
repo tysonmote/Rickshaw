@@ -91,44 +91,6 @@ Rickshaw.Utils = {
   isModelInstance: (item) ->
     !!( item.$uuid && item._get && item._set && item.data )
 
-  # Given an element, and the event, selector, and type that was fired, this
-  # method returns the correct controller instance. This is nasty as shit, yo.
-  findController: (element, eventFn, eventSelector, eventType) ->
-    isMatchingMetamorph = (element) ->
-      unless element.tagName is "SCRIPT" and element.id?.match( /^metamorph-\d+-start$/ )
-        return false
-      controller = element.retrieve( "rickshaw-controller" )
-      return false unless controller
-      controllerFn = controller.Events[eventSelector]?[eventType]
-      # Resolve to instance method
-      controllerFn = controller[controllerFn] if typeof controllerFn is "string"
-      return controllerFn == eventFn
-
-    # Find previous sibling metamorph start tag, walking up the tree if
-    # necessary.
-    findPreviousMetamorphStart = (element) ->
-      if previous = element.getPrevious( "script[type='text/x-placeholder']" )
-        return previous
-      else if parent = element.getParent()
-        return parent if parent is document.body
-        until parent is document.body or previous = parent.getPrevious( "script[type='text/x-placeholder']" )
-          parent = parent.getParent()
-        if parent is document.body
-          return document.body
-        else
-          return previous
-      else
-        return document.body
-
-    cursor = element
-    until cursor is document.body or isMatchingMetamorph( cursor )
-      cursor = findPreviousMetamorphStart( cursor )
-
-    if cursor is document.body
-      throw new Error "findController() reached <body> without finding a matching metamorph."
-    else
-      return cursor.retrieve( "rickshaw-controller" )
-
 }
 
 # MooTools Extensions

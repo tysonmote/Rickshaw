@@ -38,11 +38,13 @@ Rickshaw._BaseController = new Class({
     @_boundEvents = {}
     Object.each @Events, (events, selector) =>
       @_boundEvents[selector] = {}
-      Object.each events.__proto__, (fn, eventName) =>
+      Object.each events.__proto__, (fn, type) =>
         fn = controller[fn] if typeof fn is "string"
         # Bind event callback to controller
-        @_boundEvents[selector][eventName] = (e) ->
-          fn.apply( controller, [e, this] )
+        boundFn = (e) ->
+          morph = Rickshaw.Metamorph.findMetamorph( this, boundFn, selector, type )
+          fn.apply( controller, [e, this, morph] )
+        @_boundEvents[selector][type] = boundFn
 
     # Auto-hookup any instance methods of the form "onFooBar" as events.
     Object.each this.__proto__, (fn, name) =>
@@ -264,7 +266,7 @@ Rickshaw._ListController = new Class({
     # events for our list item sub-controllers (via _listWrapper()) and fast
     # list item insertion (unshift, push, append, etc)
     @_listWrapperSelector = null
-    @_listMetamorph = null # TODO: remove?
+    @_listMetamorph = null
     # Keep track of the sub-controller controller classes that we have already
     # set up relay events for.
     @_hasRelayedEvents = {}
@@ -283,6 +285,9 @@ Rickshaw._ListController = new Class({
   # Subcontrollers
   # --------------
 
+  _setupListMetamorph: ->
+    @_listMetamorph = new Rickshaw.Metamorph( this )
+
   # Creates subcontroller for the model and hooks it all up. Returns
   # a Rickshaw.Metamorph.
   _setupListItemController: (model) ->
@@ -294,6 +299,10 @@ Rickshaw._ListController = new Class({
 
   # (Overrides parent class method.)
   _renderDelayedSubControllers: ->
+    # TODO: This next line shouldn't be here, but it is because this is a
+    # good "kinda-post-render" method. THIS SHIT NEEDS TO GO BACK INTO
+    # METAMORPH OR HANDLEBARS
+    @_listMetamorph.startMarkerElement().store( "rickshaw-metamorph", @_listMetamorph )
     for controller in @_delayedSubControllers
       controller.render()
       this._setupSubcontrollerEventRelays( controller )
@@ -320,7 +329,7 @@ Rickshaw._ListController = new Class({
           eventFn = controllerClass::[eventFn] if typeof eventFn is "string"
           unless eventFn
             throw new Error "Lost track of relayed event -- was it removed from the controller class?"
-          controller = Rickshaw.Utils.findController( target, eventFn, selector, type )
+          controller = Rickshaw.Metamorph.findMetamorph( target, eventFn, selector, type ).controller
           eventFn.apply( controller, [e, target] ) # Fire the event.
 
     @_hasRelayedEvents[controllerClassUuid] = true
