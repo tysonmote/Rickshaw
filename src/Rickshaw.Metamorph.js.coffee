@@ -43,7 +43,9 @@ Rickshaw.Metamorph = new Class({
     else
       throw new Error "\"#{position}\" is not a valid metamorph inject position."
 
-    this.startMarkerElement().store( "rickshaw-controller", @controller )
+    unless @storedOnStartMarker
+      this.startMarkerElement().store( "rickshaw-metamorph", this )
+      @storedOnStartMarker = true
     return this
 
   _injectAfter: (element) ->
@@ -65,7 +67,9 @@ Rickshaw.Metamorph = new Class({
   # Set this Metamorph's inner HTML content.
   setHTML: (html) ->
     @_morph.html( html )
-    this.startMarkerElement().store( "rickshaw-controller", @controller )
+    unless @storedOnStartMarker
+      this.startMarkerElement().store( "rickshaw-metamorph", this )
+      @storedOnStartMarker = true
 
   # Metamorph markers
   # -----------------
