@@ -80,49 +80,6 @@
     },
     isModelInstance: function(item) {
       return !!(item.$uuid && item._get && item._set && item.data);
-    },
-    findController: function(element, eventFn, eventSelector, eventType) {
-      var cursor, findPreviousMetamorphStart, isMatchingMetamorph;
-      isMatchingMetamorph = function(element) {
-        var controller, controllerFn, _ref, _ref2;
-        if (!(element.tagName === "SCRIPT" && ((_ref = element.id) != null ? _ref.match(/^metamorph-\d+-start$/) : void 0))) {
-          return false;
-        }
-        controller = element.retrieve("rickshaw-controller");
-        if (!controller) return false;
-        controllerFn = (_ref2 = controller.Events[eventSelector]) != null ? _ref2[eventType] : void 0;
-        if (typeof controllerFn === "string") {
-          controllerFn = controller[controllerFn];
-        }
-        return controllerFn === eventFn;
-      };
-      findPreviousMetamorphStart = function(element) {
-        var parent, previous;
-        if (previous = element.getPrevious("script[type='text/x-placeholder']")) {
-          return previous;
-        } else if (parent = element.getParent()) {
-          if (parent === document.body) return parent;
-          while (!(parent === document.body || (previous = parent.getPrevious("script[type='text/x-placeholder']")))) {
-            parent = parent.getParent();
-          }
-          if (parent === document.body) {
-            return document.body;
-          } else {
-            return previous;
-          }
-        } else {
-          return document.body;
-        }
-      };
-      cursor = element;
-      while (!(cursor === document.body || isMatchingMetamorph(cursor))) {
-        cursor = findPreviousMetamorphStart(cursor);
-      }
-      if (cursor === document.body) {
-        throw new Error("findController() reached <body> without finding a matching metamorph.");
-      } else {
-        return cursor.retrieve("rickshaw-controller");
-      }
     }
   };
 
@@ -531,11 +488,15 @@
       this._boundEvents = {};
       Object.each(this.Events, function(events, selector) {
         _this._boundEvents[selector] = {};
-        return Object.each(events.__proto__, function(fn, eventName) {
+        return Object.each(events.__proto__, function(fn, type) {
+          var boundFn;
           if (typeof fn === "string") fn = controller[fn];
-          return _this._boundEvents[selector][eventName] = function(e) {
-            return fn.apply(controller, [e, this]);
+          boundFn = function(e) {
+            var morph;
+            morph = Rickshaw.Metamorph.findMetamorph(this, boundFn, selector, type);
+            return fn.apply(controller, [e, this, morph]);
           };
+          return _this._boundEvents[selector][type] = boundFn;
         });
       });
       return Object.each(this.__proto__, function(fn, name) {
@@ -553,9 +514,9 @@
       if (!this._preRender(this._metamorphs)) return false;
       html = this._html();
       this._metamorphs.each(function(morph) {
-        return _this._renderMetamorph(morph, html, false);
+        _this._renderMetamorph(morph, html, false);
+        return _this._postRender(morph);
       });
-      this._postRender();
       return true;
     },
     renderTo: function(element) {
@@ -565,7 +526,7 @@
       morph.inject(element);
       this._preRender([morph]);
       this._renderMetamorph(morph);
-      this._postRender();
+      this._postRender(morph);
       return true;
     },
     _preRender: function(morphs) {
@@ -581,8 +542,8 @@
       this._renderDelayedSubControllers();
       return this.rendered = true;
     },
-    _postRender: function() {
-      return this.fireEvent("afterRender", this);
+    _postRender: function(morph) {
+      return this.fireEvent("afterRender", [this, morph]);
     },
     _html: function() {
       var template;
@@ -686,6 +647,9 @@
       this._attachListEvents(this.collection);
       if (render) return this.render();
     },
+    _setupListMetamorph: function() {
+      return this._listMetamorph = new Rickshaw.Metamorph(this);
+    },
     _setupListItemController: function(model) {
       var klass;
       klass = instanceOf(this.Subcontroller, Class) ? this.Subcontroller : this.Subcontroller(model);
@@ -693,6 +657,7 @@
     },
     _renderDelayedSubControllers: function() {
       var controller, _i, _len, _ref;
+      this._listMetamorph.startMarkerElement().store("rickshaw-metamorph", this._listMetamorph);
       _ref = this._delayedSubControllers;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         controller = _ref[_i];
@@ -721,7 +686,7 @@
             if (!eventFn) {
               throw new Error("Lost track of relayed event -- was it removed from the controller class?");
             }
-            controller = Rickshaw.Utils.findController(target, eventFn, selector, type);
+            controller = Rickshaw.Metamorph.findMetamorph(target, eventFn, selector, type).controller;
             return eventFn.apply(controller, [e, target]);
           });
         });
@@ -818,7 +783,7 @@
     }
     this._listWrapperSelector = wrapperSelector;
     splitWrapperTag = (new Element(wrapperSelector)).outerHTML.match(/(<\w+[^>]+>)(<\/\w+>)/);
-    this._listMetamorph = new Rickshaw.Metamorph(this);
+    this._listMetamorph = this._setupListMetamorph();
     html = [];
     html.push(splitWrapperTag[1]);
     html.push(this._listMetamorph.startMarkerTag());
@@ -860,7 +825,7 @@
       } else {
         throw new Error("\"" + position + "\" is not a valid metamorph inject position.");
       }
-      this.startMarkerElement().store("rickshaw-controller", this.controller);
+      this.startMarkerElement().store("rickshaw-metamorph", this);
       return this;
     },
     _injectAfter: function(element) {
@@ -879,7 +844,7 @@
     },
     setHTML: function(html) {
       this._morph.html(html);
-      return this.startMarkerElement().store("rickshaw-controller", this.controller);
+      return this.startMarkerElement().store("rickshaw-metamorph", this);
     },
     outerHTML: function() {
       return this._morph.outerHTML();
@@ -929,5 +894,49 @@
       return matches;
     }
   });
+
+  Rickshaw.Metamorph.findMetamorph = function(element, eventFn, eventSelector, eventType) {
+    var cursor, findPreviousMetamorphStart, isMatchingMetamorph;
+    isMatchingMetamorph = function(element) {
+      var controller, controllerFn, _ref, _ref2;
+      if (!(element.tagName === "SCRIPT" && ((_ref = element.id) != null ? _ref.match(/^metamorph-\d+-start$/) : void 0))) {
+        return false;
+      }
+      controller = element.retrieve("rickshaw-metamorph").controller;
+      if (!controller) return false;
+      controllerFn = (_ref2 = controller.Events[eventSelector]) != null ? _ref2[eventType] : void 0;
+      if (typeof controllerFn === "string") {
+        controllerFn = controller[controllerFn];
+      }
+      return controllerFn === eventFn;
+    };
+    findPreviousMetamorphStart = function(element) {
+      var parent, previous;
+      if (previous = element.getPrevious("script[type='text/x-placeholder']")) {
+        return previous;
+      } else if (parent = element.getParent()) {
+        if (parent === document.body) return parent;
+        while (!(parent === document.body || (previous = parent.getPrevious("script[type='text/x-placeholder']")))) {
+          parent = parent.getParent();
+        }
+        if (parent === document.body) {
+          return document.body;
+        } else {
+          return previous;
+        }
+      } else {
+        return document.body;
+      }
+    };
+    cursor = element;
+    while (!(cursor === document.body || isMatchingMetamorph(cursor))) {
+      cursor = findPreviousMetamorphStart(cursor);
+    }
+    if (cursor === document.body) {
+      throw new Error("findController() reached <body> without finding a matching metamorph.");
+    } else {
+      return cursor.retrieve("rickshaw-metamorph");
+    }
+  };
 
 }).call(this);
