@@ -825,7 +825,10 @@
       } else {
         throw new Error("\"" + position + "\" is not a valid metamorph inject position.");
       }
-      this.startMarkerElement().store("rickshaw-metamorph", this);
+      if (!this.storedOnStartMarker) {
+        this.startMarkerElement().store("rickshaw-metamorph", this);
+        this.storedOnStartMarker = true;
+      }
       return this;
     },
     _injectAfter: function(element) {
@@ -844,7 +847,10 @@
     },
     setHTML: function(html) {
       this._morph.html(html);
-      return this.startMarkerElement().store("rickshaw-metamorph", this);
+      if (!this.storedOnStartMarker) {
+        this.startMarkerElement().store("rickshaw-metamorph", this);
+        return this.storedOnStartMarker = true;
+      }
     },
     outerHTML: function() {
       return this._morph.outerHTML();
