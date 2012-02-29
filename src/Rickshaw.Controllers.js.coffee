@@ -6,8 +6,8 @@
 # Events
 # ------
 #
-#   * onBeforeRender(controller) - Fired before the controller is rendered.
-#   * onAfterRender(controller) - Fired after the controller is rendered.
+#   * onAfterRender(controller) - Fired after each view is rendered. Most
+#     controllers will have only one view (aka render destination).
 #
 Rickshaw._BaseController = new Class({
 
@@ -22,127 +22,84 @@ Rickshaw._BaseController = new Class({
   # Auto-attached element events. Keyed by element selector. (Optional)
   Events: {}
 
-  initialize: (element=null) ->
-    Rickshaw.register( this )
-    Rickshaw.addParentClass( this )
+  # Setup
+  # -----
+
+  initialize: (element, position="bottom") ->
+    Rickshaw.addUuid( this )
     @rendered = false
-    @_metamorphs = [] # All render destinations
-    @_delayedSubControllers = [] # Delayed render sub-controllers
+    @views = []
     this._setupEvents()
-    this.renderTo( element ) if element
+    this.renderTo( element, position ) if element
     return this
 
+  # Pre-bind element events to this controller and store in `@_boundEvents`.
   _setupEvents: ->
-    # Pre-bind element events to this controller and store in `@_boundEvents`.
     controller = this
     @_boundEvents = {}
-    Object.each @Events, (events, selector) =>
+
+    for own selector, events of @Events
       @_boundEvents[selector] = {}
-      Object.each events.__proto__, (fn, type) =>
-        fn = controller[fn] if typeof fn is "string"
-        # Bind event callback to controller
+      for own type, fn of events.__proto__
+        fn = this[fn] if typeof fn is "string"
+        # Bind event callback to controller.
         boundFn = (e) ->
-          morph = Rickshaw.Metamorph.findMetamorph( this, boundFn, selector, type )
-          fn.apply( controller, [e, this, morph] )
+          view = Rickshaw.Metamorph.findView( this, boundFn, selector, type )
+          fn.apply( controller, [e, this, view] )
         @_boundEvents[selector][type] = boundFn
 
     # Auto-hookup any instance methods of the form "onFooBar" as events.
     Object.each this.__proto__, (fn, name) =>
       if match = name.match( /^on[A-Z][A-Za-z]+$/ )
-        this.addEvent match[0], -> fn.apply this, arguments
+        controller.addEvent match[0], fn.bind( controller )
 
   # Rendering
   # ---------
 
-  # (Re-)render to all destinations. Fires "beforeRender" and "afterRender"
-  # events. Returns true after everything has been rendered.
-  render: ->
-    return false unless this._preRender( @_metamorphs )
-    html = this._html()
-    @_metamorphs.each (morph) =>
-      this._renderMetamorph( morph, html, false )
-      this._postRender( morph )
-    return true
-
-  # Renders to the bottom of the given element. Other render destinations
-  # (metamorphs) will not be re-rendered.
-  #
-  # TODO: Accept other Metamorphs? Relative location argument?
-  renderTo: (element) ->
-    morph = new Rickshaw.Metamorph( this )
-    @_metamorphs.push( morph )
-    morph.inject( element )
-    this._preRender( [morph] )
-    this._renderMetamorph( morph )
-    this._postRender( morph )
-    return true
-
-  # Returns true if we should continue with rendering the given metamorphs.
-  # Fires the "beforeRender" event.
-  _preRender: (morphs) ->
-    return false unless morphs.length > 0
-    this.fireEvent "beforeRender", this
-    return true
-
-  # Render a single metamorph destination for this controller, as well as any
-  # nested sub-controllers.
-  _renderMetamorph: (morph, html=null) ->
-    html ||= this._html()
-    morph.setHTML( html )
-    this._attachElementEvents( morph ) unless @_useRelayedEvents
-    this._renderDelayedSubControllers()
-    @rendered = true
-
-  _postRender: (morph) ->
-    this.fireEvent( "afterRender", [this, morph] )
-
-  _html: ->
-    if template = Rickshaw.Templates[@Template]
-      return template( this )
+  # (Re-)render all views or a single view.
+  render: (view) ->
+    if view
+      view.render()
+      this._attachElementEvents( view )
     else
-      throw new Error "Template \"#{@Template}\" not found."
+      return false unless @views.length > 0
+      this.render( view ) for view in @views
+    @rendered = true
+    return true
 
-  # Subcontrollers
-  # --------------
+  # Render to a new destination. `postion` can be: top, bottom, above, or below.
+  renderTo: (element, position="bottom") ->
+    view = new View( this, @Template )
+    view.addEvent( "afterRender", this._onAfterViewRender )
+    @views.push( view )
+    view.renderTo( element, position )
+    this._attachElementEvents( view )
+    @rendered = true
+    return true
 
-  # Creates a metamorph for the subcontroller, stores it in the subcontroller's
-  # "_metamorphs" array, and returns the metamorph for the given subcontroller.
-  # The subcontroller is added to this controllers list of subcontrollers to
-  # render, if needed.
-  #
-  # If `useRelayedEvents` is true, the subcontroller will not attach element
-  # events -- they should be taken care of as relayed events by a paret element
-  # (esp. in ListController lists).
-  _setupSubcontroller: (subcontroller, useRelayedEvents=false) ->
-    # create and store the metamorph on the subcontroller
-    morph = new Rickshaw.Metamorph( subcontroller )
-    subcontroller._metamorphs.push( morph )
-    subcontroller._useRelayedEvents = true if useRelayedEvents
-    # render later
-    @_delayedSubControllers.include( subcontroller )
-    return morph
+  # Render events
+  # -------------
 
-  _renderDelayedSubControllers: ->
-    for controller in @_delayedSubControllers
-      controller.render()
-    @_delayedSubControllers = []
+  _onAfterViewRender: (view) ->
+    this.fireEvent( "afterRender", [this, view] )
 
   # Element Events
   # --------------
 
   # Attach all element events to a given metamorph's elements.
-  _attachElementEvents: (morph) ->
-    Object.each @_boundEvents, (events, selector) ->
-      morph.getElements( selector ).addEvents( events )
+  _attachElementEvents: (view) ->
+    view.addEvents( @_boundEvents )
+
+  Binds: ["_onAfterViewRender"]
 
 })
 
 # Controller
-# ===================
+# ==========
 #
-# Render a single model using a template. Controllers can contain
-# sub-controllers, rendered in-place with a `subController` Handlebar call in
-# the template.
+# Render a single model using a template. Views can contain other controllers
+# (sub-controllers / sub-views), rendered in-place with a `subController`
+# Handlebar call in the template.
 #
 # Examples
 # --------
@@ -177,6 +134,8 @@ Rickshaw._BaseController = new Class({
 #
 Rickshaw._Controller = new Class({
 
+  $family: -> "Controller"
+
   Extends: Rickshaw._BaseController
 
   # Attached model instance. This is set when this controller is created.
@@ -186,16 +145,9 @@ Rickshaw._Controller = new Class({
   # methods on this controller that return the value of the property.
   DeferToModel: []
 
-  # Params:
-  #
-  #   * `model` (Model) - Associated model.
-  #   * `element` (Element, Elements, String, null) - DOM element, elements,
-  #     or element id that this controller's rendered template HTML is rendered
-  #     to. If this is null, it can be set to an Element or Elements later (as
-  #     in the case of subController).
-  initialize: (model=null, element=null) ->
+  initialize: (model, element, position) ->
     this.setModel( model, false ) if model
-    this.parent( element )
+    this.parent( element, position )
 
   toString: -> "<Controller #{@$uuid}>"
 
@@ -232,92 +184,73 @@ Rickshaw._Controller = new Class({
 
 })
 
-window.Controller = Rickshaw.Utils.subclassConstructor( Rickshaw._Controller )
+window.Controller = Rickshaw.subclassConstructor( "Controller", Rickshaw._Controller )
 
 # ListController
-# -----------------------
+# --------------
 #
 # Render a List.
 #
 Rickshaw._ListController = new Class({
 
+  $family: -> "ListController"
+
   Extends: Rickshaw._BaseController
 
   # Attached List instance. This is optionally set when this
   # controller is created.
-  collection: null
+  list: null
 
   # Either a Controller class or a function that takes a model
   # instance and returns the correct controller class for that model.
   Subcontroller: ->
-    throw new Error "Subcontroller not set for this ListController."
+    throw new Error "Subcontroller not set for #{this.toString()}."
 
-  # Params:
-  #
-  #   * `collection` (List) - Associated collection of model
-  #     elements to be rendered.
-  #   * `element` (Element, Elements, String, null) - DOM element, elements,
-  #     or element id that this controller's rendered template HTML is rendered
-  #     to. If this is null, it can be set to an Element or Elements later (as
-  #     in the case of the `subController` or `list` Handlebars helpers).
-  initialize: (collection=null, element=null) ->
-    this.setList( collection, false ) if collection
-    # Selector for list container element. This is used for attaching relay
-    # events for our list item sub-controllers (via _listWrapper()) and fast
-    # list item insertion (unshift, push, append, etc)
-    @_listWrapperSelector = null
-    @_listMetamorph = null
-    # Keep track of the sub-controller controller classes that we have already
-    # set up relay events for.
-    @_hasRelayedEvents = {}
+  # Setup
+  # -----
+
+  initialize: (list, element, position) ->
+    @_listView = null # TODO: unused?
+    this.setList( list, false ) if list
     this.parent( element )
 
   toString: -> "<ListController #{@$uuid}>"
 
-  # Sets this controller's associated collection instance and re-renders all
+  # Returns new controller instance with the given model.
+  subcontrollerFor: (model) ->
+    @_subcontrollerType ||= Rickshaw.typeOf( this.Subcontroller )
+    if @_subcontrollerType is "function"
+      return new ( this.Subcontroller( model ) )( model )
+    else if @_subcontrollerType is "class"
+      return new this.Subcontroller( model )
+    else
+      throw new Error( "#{this}.Subclass must be a Class or a function that returns a Class." )
+
+  # List
+  # ----
+
+  # Sets this controller's associated List instance and re-renders all
   # Metamorphs.
-  setList: (collection, render=true) ->
-    this._detachListEvents( @collection ) if @collection
-    @collection = collection
-    this._attachListEvents( @collection )
+  setList: (list, render=true) ->
+    unless Rickshaw.typeOf( list ) is "List"
+      throw new Error "ListController#setList() must be passed a List instance. You passed a(n) #{Rickshaw.typeOf( list )}"
+    if @list
+      previousList = @list
+      throw new Error "OK..."
+    this._detachListEvents( @list ) if @list
+    @list = list
+    this._attachListEvents( @list )
     this.render() if render
 
-  # Subcontrollers
-  # --------------
-
-  _setupListMetamorph: ->
-    @_listMetamorph = new Rickshaw.Metamorph( this )
-
-  # Creates subcontroller for the model and hooks it all up. Returns
-  # a Rickshaw.Metamorph.
-  _setupListItemController: (model) ->
-    klass = if instanceOf( @Subcontroller, Class )
-      @Subcontroller
-    else
-      this.Subcontroller( model )
-    return this._setupSubcontroller( new klass( model ), true )
-
-  # (Overrides parent class method.)
-  _renderDelayedSubControllers: ->
-    # TODO: This next line shouldn't be here, but it is because this is a
-    # good "kinda-post-render" method. THIS SHIT NEEDS TO GO BACK INTO
-    # METAMORPH OR HANDLEBARS
-    @_listMetamorph.startMarkerElement().store( "rickshaw-metamorph", @_listMetamorph )
-    for controller in @_delayedSubControllers
-      controller.render()
-      this._setupSubcontrollerEventRelays( controller )
-    @_delayedSubControllers = []
-
-  # Get the list wrapper element that wraps this controller's list elements.
-  _listWrapper: ->
-    @__listWrapper ||= $$( @_listWrapperSelector )[0]
+  each: (fn) ->
+    @list.each( fn )
 
   # Given a controller instance, hook up relay events on the list wrapper so
   # that events don't have to be attached to every single list item's elements.
   # If the controller class's events have already been hooked up, we don't have
   # to do anything here.
   _setupSubcontrollerEventRelays: (controller) ->
-    controllerClass = controller._class
+    controllerClass = controller.constructor
     controllerClassUuid = controllerClass.$uuid
     return if @_hasRelayedEvents[controllerClassUuid]
 
@@ -337,71 +270,51 @@ Rickshaw._ListController = new Class({
   # Events
   # ------
 
-  # Hook up the collection's events.
-  _attachListEvents: (collection) ->
-    collection.addEvents(
-      add: this._modelsAdded
-      remove: this._modelsRemoved
-      sort: this._collectionSorted
-      change: this._modelChanged
+  # Hook up the List's events.
+  _attachListEvents: (list) ->
+    list.addEvents(
+      add: this._onModelsAdd
+      remove: this._onModelsRemove
+      sort: this._onListSort
     )
 
-  # Detach a collection's events.
-  _detachListEvents: (collection) ->
-    collection.removeEvents(
-      add: this._modelsAdded
-      remove: this._modelsRemoved
-      sort: this._collectionSorted
-      change: this._modelChanged
+  # Detach a List's events.
+  _detachListEvents: (list) ->
+    list.removeEvents(
+      add: this._onModelsAdd
+      remove: this._onModelsRemove
+      sort: this._onListSort
     )
 
   # Hooks
   # -----
 
-  # TODO: So. The big trick here is going to be figuring out how to do the
-  # minimum possible for each hook. When a model is appended, we should only be
-  # appending the HTML and hooking up the events for that new HTML instead of
-  # re-rendering the whole damn thing. When a model is removed, we should only
-  # be removing those elements / sub-controllers. When the collection's
-  # sort-order changes, we should figure out how to do the minimum
-  # DOM-manipulation possible.
-
-  # TODO: Refactor.
-  _modelsAdded: (collection, models, position="unknown") ->
+  _onModelsAdd: (list, models, position="unknown") ->
     return unless @rendered and models.length > 0
+    switch position
+      when "end"
+        for model in models
+          subcontroller = this.subcontrollerFor( model )
+          this.fireEvent( "modelAppend", [subcontroller] )
+      when "beginning"
+        for model in models.reverse()
+          subcontroller = this.subcontrollerFor( model )
+          this.fireEvent( "modelPrepend", [subcontroller] )
+      else
+        this.render()
 
-    listWrapper = this._listWrapper()
-    unless listWrapper
-      throw new Error "Template \"#{@Template}\" doesn't have a `{{ list }}` placeholder."
+  # TODO
+  _onModelsRemove: (list, models, position="unknown") ->
+    return unless @rendered
+    this.render()
 
-    listMetamorph = @_listMetamorph
+  # TODO
+  _onListSort: ->
+    return unless @rendered
+    this.render()
 
-    if position is "end"
-      models.each (model) =>
-        morph = this._setupListItemController( model )
-        morph.inject( listMetamorph.endMarkerElement(), "before" )
-      this._renderDelayedSubControllers()
-    else if position is "beginning"
-      models.reverse().each (model) =>
-        morph = this._setupListItemController( model )
-        morph.inject( listWrapper, "top" )
-      this._renderDelayedSubControllers()
-    else
-      this.render()
-
-  _modelsRemoved: (collection, models, position="unknown") ->
-    this.render() if @rendered
-
-  _collectionSorted: ->
-    this.render() if @rendered
-
-  _modelChanged: (model, properties) ->
-    # The model's `Controller` instace will re-render itself. Don't know if we
-    # actually need to do anything here until we implement filtering on
-    # ListControllers.
-
-  Binds: ["_modelsAdded", "_modelsRemoved", "_collectionSorted", "_modelChanged"]
+  Binds: ["_onModelsAdd", "_onModelsRemove", "_onListSort"]
 
 })
 
-window.ListController = Rickshaw.Utils.subclassConstructor( Rickshaw._ListController )
+window.ListController = Rickshaw.subclassConstructor( "ListController", Rickshaw._ListController )

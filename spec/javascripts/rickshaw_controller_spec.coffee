@@ -7,16 +7,10 @@ describe "Controller", ->
   beforeEach setupCustomMatchers
 
   describe "creating", ->
-    beforeEach ->
-      @Todo = new Model()
-      @todo = new @Todo {num: "one"}
-      @TodoController = new Controller({
-        Template: "todo"
-      })
+    beforeEach Fixtures.simpleTodoController
 
     it "has an associated model", ->
-      todoController = new @TodoController( @todo )
-      expect( todoController.model ).toBe( @todo )
+      expect( @todoController.model ).toBe( @todo )
 
     it "can be created without a model", ->
       todoController = new @TodoController()
@@ -25,28 +19,23 @@ describe "Controller", ->
       expect( todoController.setModel( @todo ) ).toBe( todoController )
       expect( todoController.model ).toBe( @todo )
 
+    it "is not rendered anywhere", ->
+      expect( @todoController.rendered ).toBeFalsy()
+      expect( $$( "p.todo" ) ).toBeEmpty()
+
   describe "preattached events", ->
     it "attaches on initialize", ->
-      fired = false
-      args = null
-      MyController = new Controller
-        onCoolEvent: ->
-          fired = true
-          args = Array.from( arguments )
+      MyController = new Controller( onCoolEvent: -> )
       controller = new MyController()
+      event = new EventCapture controller, "coolEvent"
       controller.fireEvent( "coolEvent", [1, "cool"] )
-      expect( fired ).toBe( true )
-      expect( args ).toEqualArray( [1, "cool"] )
+      expect( event.timesFired ).toBe( 1 )
+      expect( event.arguments ).toMatchArray( [1, "cool"] )
 
   describe "model events", ->
+    beforeEach Fixtures.simpleTodoController
     beforeEach ->
-      @Todo = new Model()
-      @todo = new @Todo {num: "one"}
-      @TodoController = new Controller({
-        Template: "todo"
-      })
-      @todoController = new @TodoController()
-      # TODO: This is so awful. God.
+      # TODO: We shouldn't need to spy on a private method here.
       spyOn( @todoController, "_modelChanged" ).andCallThrough()
       @todoController.setModel( @todo )
       @todoController._modelChanged.reset()
@@ -54,7 +43,7 @@ describe "Controller", ->
     it "binds events to the model", ->
       @todo.set neat: true, rad: true
       expect( @todoController._modelChanged.callCount ).toBe( 1 )
-      expect( @todoController._modelChanged.argsForCall[0] ).toEqualArray( [@todo, ["neat", "rad"]] )
+      expect( @todoController._modelChanged.argsForCall[0] ).toMatchArray( [@todo, ["neat", "rad"]] )
 
     it "removes the events when setting a new model", ->
       @todo2 = new @Todo()
@@ -63,70 +52,68 @@ describe "Controller", ->
       expect( @todoController._modelChanged ).not.toHaveBeenCalled()
 
   describe "defer to model", ->
-    beforeEach ->
-      @Todo = new Model()
-      @todo = new @Todo num: "one"
-      @TodoController = new Controller DeferToModel: ["num"]
-      @todoController = new @TodoController @todo
+    beforeEach Fixtures.simpleTodoControllerWithDefer
 
     it "should be able to defer methods to the model", ->
       expect( @todoController.num() ).toEqual( "one" )
 
   describe "rendering", ->
-    beforeEach ->
-      @Todo = new Model()
-      @todo = new @Todo {text: "do stuff"}
-      @TodoController = new Controller({
-        Template: "todo"
-        klass: -> "neato"
-        text: -> "TODO: #{@model.get('text')}"
-        Events:
-          p:
-            click: ->
-              @todoClickArguments = Array.from arguments
-      })
-      rickshawTemplate "todo", "
-        <p class='{{klass}}'>{{text}}</p>
-      "
+    beforeEach Fixtures.simpleTodoControllerWithClickEvent
 
-    it "renders later without element", ->
-      todoController = new @TodoController( @todo )
-      expect( $( "test" ).innerHTML ).toEqual( "" )
-      expect( todoController.render() ).toBe( false )
-      todoController.renderTo( $( "test" ) )
-      expect( todoController.render() ).toBe( true )
-      expect( todoController.rendered ).toBe( true )
-      expect( $( "test" ).innerHTML ).toMatch( /<p class="neato">TODO: do stuff<\/p>/ )
+    it "doesn't render without a destination", ->
+      expect( @todoController.render() ).toBe( false )
+      expect( $$( "p.todo" ) ).toBeEmpty()
 
-    it "renders on create with element", ->
+    it "renders to a destination (bottom by default)", ->
+      $( "test" ).set( "html", "<div id='wrap'><span>1</span></div>")
+      expect( @todoController.renderTo( $( "wrap" ) ) ).toBe( true )
+      expect( @todoController.rendered ).toBe( true )
+      expect( $( "test" ).innerHTML ).toMatch( /<div id="wrap"><span>\d+<\/span><script id="metamorph-\d+-start" type="text\/x-placeholder"><\/script><p class="todo neato">one<\/p><script id="metamorph-\d+-end" type="text\/x-placeholder"><\/script><\/div>/ )
+
+    it "renders to the top of a destination", ->
+      $( "test" ).set( "html", "<div id='wrap'><span>1</span></div>")
+      expect( @todoController.renderTo( $( "wrap" ), "top" ) ).toBe( true )
+      expect( @todoController.rendered ).toBe( true )
+      expect( $( "test" ).innerHTML ).toMatch( /<div id="wrap"><script id="metamorph-\d+-start" type="text\/x-placeholder"><\/script><p class="todo neato">one<\/p><script id="metamorph-\d+-end" type="text\/x-placeholder"><\/script><span>\d+<\/span><\/div>/ )
+
+    it "renders on creation when passed an element", ->
       todoController = new @TodoController( @todo, $( "test" ) )
-      expect( $( "test" ).innerHTML ).toMatch( /<p class="neato">TODO: do stuff<\/p>/ )
+      expect( $( "test" ).innerHTML ).toMatch( /<p class="todo neato">one<\/p>/ )
       expect( todoController.rendered ).toBe( true )
 
     it "renders HTML to multiple locations simultaneously", ->
-      todoController = new @TodoController( @todo )
-      todoController.renderTo( $( "test" ) )
-      todoController.renderTo( $( "test" ) )
-      expect( $( "test" ).innerHTML ).toMatch( /(<p class="neato">TODO: do stuff<\/p>.+){2}/ )
+      @todoController.renderTo( $( "test" ) )
+      @todoController.renderTo( $( "test" ) )
+      expect( $( "test" ).innerHTML ).toMatch( /(<p class="todo neato">one<\/p>.+){2}/ )
+      expect( @todoController.rendered ).toBe( true )
+
+    it "re-renders when the model changes", ->
+      todoController = new @TodoController( @todo, $( "test" ) )
+      @todo.set( "num", "two" )
+      expect( $$( "#test p" )[0].innerHTML ).toEqual( "two" )
       expect( todoController.rendered ).toBe( true )
 
-    it "attaches element events", ->
-      todoController = new @TodoController( @todo, $( "test" ) )
+  describe "events", ->
+    beforeEach Fixtures.simpleTodoControllerWithClickEvent
+
+    it "attaches element events on render", ->
+      @todoController.renderTo( $( "test" ) )
       $$( "#test p" ).fireEvent( "click", "Boom." )
-      expect( todoController.todoClickArguments ).toEqualArray( ["Boom.", $$( "#test p" )[0]] )
+      expect( @todoController.todoClickArguments ).toMatchArray( ["Boom.", $$( "#test p" )[0], @todoController.views[0]] )
 
     it "doesn't attach element events if `_useRelayedEvents` is true", ->
-      todoController = new @TodoController( @todo )
-      todoController._useRelayedEvents = true
-      todoController.renderTo( $( "test" ) )
+      throw new Error "TODO: fix"
+      @todoController._useRelayedEvents = true
+      @todoController.renderTo( $( "test" ) )
       $$( "#test p" ).fireEvent( "click", "Boom." )
-      expect( todoController.todoClickArguments ).toBeUndefined()
+      expect( @todoController.todoClickArguments ).toBeUndefined()
 
-    it "auto detaches events if they don't match the selector anymore", ->
-      # TODO
+    it "auto detaches events if they don't match the selector anymore"
 
-    it "re-renders when the model changes and re-attaches events", ->
-      todoController = new @TodoController( @todo, $( "test" ) )
-      @todo.set( "text", "Neato." )
-      expect( $$( "#test p" )[0].innerHTML ).toEqual( "TODO: Neato." )
-      expect( todoController.rendered ).toBe( true )
+    it "re-attaches events when the model changes (after the re-render)", ->
+      @todoController.renderTo( $( "test" ) )
+      $$( "#test p" ).fireEvent( "click", "Boom 1." )
+      expect( @todoController.todoClickArguments ).toMatchArray( ["Boom 1.", $$( "#test p" )[0], @todoController.views[0]] )
+      @todo.set( "num", "two" )
+      $$( "#test p" ).fireEvent( "click", "Boom 2." )
+      expect( @todoController.todoClickArguments ).toMatchArray( ["Boom 2.", $$( "#test p" )[0], @todoController.views[0]] )

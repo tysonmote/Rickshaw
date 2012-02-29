@@ -1,20 +1,26 @@
 # Handlebars
 # ==========
 #
-# Handlebars helpers for Rickshaw.
+# Handlebars helpers for Rickshaw. All helper functions are bound to the
+# Controller / ListController instance being rendered. The View / ListView
+# instance can be accessed via `options.data.view`.
 
 # subController
 # -------------
 #
-# Render a Controller / ListController instance in-place.
+# Render the given Controller / ListController instance in-place.
 #
 Handlebars.registerHelper "subController", (controller, options) ->
+  # TODO: Cleanup the arguments handling here
   unless arguments.length is 2
     throw new Error "You must supply a controller instance to \"subController\"."
   unless controller
     throw new Error "Invalid controller passed to the subController template helper."
-  morph = this._setupSubcontroller( controller )
-  return new Handlebars.SafeString( morph.outerHTML() )
+  if this is controller
+    throw new Error "You can't recursively render a controller inside of itself."
+
+  view = options.data.view._subview( controller )
+  return new Handlebars.SafeString( view.placeholderHTML() )
 
 # tag
 # ---
@@ -32,32 +38,23 @@ Handlebars.registerHelper "tag", (tag, options) ->
 # list
 # ----
 #
-# Render all elements of a ListController. Any element events defined
-# by the subcontroller will be attached to the list wrapper element as relay
-# events. This is significantly faster than attaching events to every list
-# item's elements individually.
+# For ListControllers, render the list of models in-place inside the given
+# wrapper tag. Eg.
+#
+#     {{ list "div.my_stuff" }}
 #
 Handlebars.registerHelper "list", (wrapperSelector, options) ->
-  unless typeOf( @collection ) is "array"
-    throw new Error "You can only use the \"list\" Handlebars helper in a ListController template."
+  unless Rickshaw.typeOf( this ) is "ListController"
+    throw new Error "You can only use the \"list\" Handlebars helper in a ListController. This is a(n) #{Rickshaw.typeOf( this ) or typeOf( this )}"
 
-  unless options
+  if typeof wrapperSelector is "object"
     options = wrapperSelector
     wrapperSelector = "div"
 
-  # Ensure that the selector is unique
-  if wrapperSelector.match( /#\w|\[id=/ )
-    wrapperSelector += "[data-uuid='#{Rickshaw.uuid()}']"
-  else
-    wrapperSelector += "##{Rickshaw.uuid()}"
-  @_listWrapperSelector = wrapperSelector
-  splitWrapperTag = ( new Element( wrapperSelector ) ).outerHTML.match( /(<\w+[^>]+>)(<\/\w+>)/ )
-  @_listMetamorph = this._setupListMetamorph()
+  listView = options.data.view._listview( wrapperSelector )
+  return new Handlebars.SafeString( listView.placeholderHTML() )
 
-  html = []
-  html.push( splitWrapperTag[1] )
-  html.push( @_listMetamorph.startMarkerTag() )
-  @collection.each (model) => html.push( this._setupListItemController( model ).outerHTML() )
-  html.push( @_listMetamorph.endMarkerTag() )
-  html.push( splitWrapperTag[2] )
-  return new Handlebars.SafeString html.join( "" )
+Handlebars.registerHelper "debug", ->
+  args = Array.from( arguments )
+  options = args.pop()
+  console.log args, options

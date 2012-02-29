@@ -23,13 +23,13 @@ describe "List", ->
   describe "creating", ->
     it "creates an empty Array-like list", ->
       todoList = new @TodoList()
-      expect( todoList ).toEqualArray( [] )
+      expect( todoList ).toMatchArray( [] )
       expect( todoList.length ).toBe( 0 )
       expect( typeOf( todoList ) ).toBe( "array" )
 
     it "creates pre-filled lists", ->
       todoList = new @TodoList @todo1, @todo2
-      expect( todoList ).toEqualArray( [@todo1, @todo2] )
+      expect( todoList ).toMatchArray( [@todo1, @todo2] )
 
   # Adding
   # ------
@@ -40,14 +40,14 @@ describe "List", ->
 
     it "adds objects", ->
       expect( @todoList.push( @todo2 ) ).toEqual( 2 )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2] )
       expect( @todoList.push( @todo2, @todo1 ) ).toEqual( 4 )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2, @todo2, @todo1] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2, @todo2, @todo1] )
 
     it "fires onAdd events", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.push @todo2
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@todo2], "end"] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@todo2], "end"] )
       expect( addEvent.timesFired ).toBe( 1 )
 
   describe "#unshift", ->
@@ -56,14 +56,14 @@ describe "List", ->
 
     it "adds objects", ->
       expect( @todoList.unshift( @todo2 ) ).toEqual( 2 )
-      expect( @todoList ).toEqualArray( [@todo2, @todo1] )
+      expect( @todoList ).toMatchArray( [@todo2, @todo1] )
       expect( @todoList.unshift( @todo2, @todo1 ) ).toEqual( 4 )
-      expect( @todoList ).toEqualArray( [@todo2, @todo1, @todo2, @todo1] )
+      expect( @todoList ).toMatchArray( [@todo2, @todo1, @todo2, @todo1] )
 
     it "fires onAdd events", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.unshift @todo2
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@todo2], "beginning"] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@todo2], "beginning"] )
       expect( addEvent.timesFired ).toBe( 1 )
 
   describe "#include", ->
@@ -72,15 +72,15 @@ describe "List", ->
 
     it "adds objects", ->
       expect( @todoList.include( @todo2 ) ).toEqual( @todoList )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2] )
       # Doesn't add duplicates
       expect( @todoList.include( @todo2 ) ).toEqual( @todoList )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2] )
 
     it "fires onAdd events", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.include @todo2
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@todo2], "end"] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@todo2], "end"] )
       expect( addEvent.timesFired ).toBe( 1 )
       # Doesn't fire if model is already in array
       addEvent.reset()
@@ -94,20 +94,20 @@ describe "List", ->
 
     it "adds objects", ->
       expect( @todoList.combine( [@todo2, @megaTodo1] ) ).toEqual( @todoList )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2, @megaTodo1] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2, @megaTodo1] )
       # Doesn't add duplicates
       expect( @todoList.combine( [@todo2, @megaTodo1, @megaTodo2] ) ).toEqual( @todoList )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2, @megaTodo1, @megaTodo2] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2, @megaTodo1, @megaTodo2] )
 
     it "fires onAdd events", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.combine [@todo2, @megaTodo1]
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@todo2, @megaTodo1], "end"] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@todo2, @megaTodo1], "end"] )
       expect( addEvent.timesFired ).toBe( 1 )
       # Fires if only one model isn't in array yet
       addEvent.reset()
       @todoList.combine [@megaTodo1, @megaTodo2]
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@megaTodo2], "end"] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@megaTodo2], "end"] )
       expect( addEvent.timesFired ).toBe( 1 )
       # Doesn't fire if all models are already in array
       addEvent.reset()
@@ -137,12 +137,12 @@ describe "List", ->
 
     it "removes objects", ->
       expect( @todoList.pop() ).toBe( @megaTodo2 )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2, @megaTodo1] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2, @megaTodo1] )
 
     it "fires onRemoveEvents", ->
       removeEvent = new EventCapture @todoList, "remove"
       @todoList.pop()
-      expect( removeEvent.arguments ).toEqualArray( [@todoList, [@megaTodo2], "end"] )
+      expect( removeEvent.arguments ).toMatchArray( [@todoList, [@megaTodo2], "end"] )
       expect( removeEvent.timesFired ).toBe( 1 )
 
   describe "#shift", ->
@@ -151,12 +151,12 @@ describe "List", ->
 
     it "removes objects", ->
       expect( @todoList.shift() ).toBe( @todo1 )
-      expect( @todoList ).toEqualArray( [@todo2, @megaTodo1, @megaTodo2] )
+      expect( @todoList ).toMatchArray( [@todo2, @megaTodo1, @megaTodo2] )
 
     it "fires onRemoveEvents", ->
       removeEvent = new EventCapture @todoList, "remove"
       @todoList.shift()
-      expect( removeEvent.arguments ).toEqualArray( [@todoList, [@todo1], "beginning"] )
+      expect( removeEvent.arguments ).toMatchArray( [@todoList, [@todo1], "beginning"] )
       expect( removeEvent.timesFired ).toBe( 1 )
 
   describe "#erase", ->
@@ -165,7 +165,7 @@ describe "List", ->
 
     it "removes objects", ->
       expect( @todoList.erase( @todo2 ) ).toBe( @todoList )
-      expect( @todoList ).toEqualArray( [@todo1, @megaTodo1, @megaTodo2] )
+      expect( @todoList ).toMatchArray( [@todo1, @megaTodo1, @megaTodo2] )
 
     it "can't remove non-model objects yet", ->
       # TODO: Figure out what's up with Jasmine's toThrow() matcher.
@@ -179,7 +179,7 @@ describe "List", ->
     it "fires onRemoveEvents", ->
       removeEvent = new EventCapture @todoList, "remove"
       @todoList.erase( @todo2 )
-      expect( removeEvent.arguments ).toEqualArray( [@todoList, [@todo2], [4, 1]] )
+      expect( removeEvent.arguments ).toMatchArray( [@todoList, [@todo2], [4, 1]] )
       expect( removeEvent.timesFired ).toBe( 1 )
 
   describe "empty", ->
@@ -188,12 +188,12 @@ describe "List", ->
 
     it "removes all models", ->
       expect( @todoList.empty() ).toBe( @todoList )
-      expect( @todoList ).toEqualArray( [] )
+      expect( @todoList ).toMatchArray( [] )
 
     it "fires an onRemove event", ->
       removeEvent = new EventCapture @todoList, "remove"
       @todoList.empty()
-      expect( removeEvent.arguments ).toEqualArray( [@todoList, [@todo1, @todo2], "all"] )
+      expect( removeEvent.arguments ).toMatchArray( [@todoList, [@todo1, @todo2], "all"] )
       expect( removeEvent.timesFired ).toBe( 1 )
       # Doesn't fire event if there's nothing to empty
       removeEvent.reset()
@@ -206,45 +206,45 @@ describe "List", ->
       @todoList = new @CombinedTodoList @todo1, @todo2
 
     it "does nothing", ->
-      expect( @todoList.splice( 1, 0 ) ).toEqualArray( [] )
-      expect( @todoList ).toEqualArray( [@todo1, @todo2] )
+      expect( @todoList.splice( 1, 0 ) ).toMatchArray( [] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo2] )
 
     it "removes a model", ->
-      expect( @todoList.splice( 1, 1 ) ).toEqualArray( [@todo2] )
-      expect( @todoList ).toEqualArray( [@todo1] )
+      expect( @todoList.splice( 1, 1 ) ).toMatchArray( [@todo2] )
+      expect( @todoList ).toMatchArray( [@todo1] )
 
     it "removes multiple models", ->
       @todoList.push( @megaTodo1, @megaTodo2 )
-      expect( @todoList.splice( 1, 2 ) ).toEqualArray( [@todo2, @megaTodo1] )
-      expect( @todoList ).toEqualArray( [@todo1, @megaTodo2] )
+      expect( @todoList.splice( 1, 2 ) ).toMatchArray( [@todo2, @megaTodo1] )
+      expect( @todoList ).toMatchArray( [@todo1, @megaTodo2] )
 
     it "removes models", ->
-      expect( @todoList.splice( 1, 2 ) ).toEqualArray( [@todo2] )
+      expect( @todoList.splice( 1, 2 ) ).toMatchArray( [@todo2] )
 
     it "adds a model", ->
-      expect( @todoList.splice( 1, 0, @megaTodo1 ) ).toEqualArray( [] )
-      expect( @todoList ).toEqualArray( [@todo1, @megaTodo1, @todo2] )
+      expect( @todoList.splice( 1, 0, @megaTodo1 ) ).toMatchArray( [] )
+      expect( @todoList ).toMatchArray( [@todo1, @megaTodo1, @todo2] )
 
     it "adds multtiple models", ->
-      expect( @todoList.splice( 1, 0, @megaTodo1, @megaTodo2 ) ).toEqualArray( [] )
-      expect( @todoList ).toEqualArray( [@todo1, @megaTodo1, @megaTodo2, @todo2] )
+      expect( @todoList.splice( 1, 0, @megaTodo1, @megaTodo2 ) ).toMatchArray( [] )
+      expect( @todoList ).toMatchArray( [@todo1, @megaTodo1, @megaTodo2, @todo2] )
 
     it "removes and adds models", ->
       @todoList.push( @megaTodo1 )
-      expect( @todoList.splice( 1, 1, @todo1 ) ).toEqualArray( [@todo2] )
-      expect( @todoList ).toEqualArray( [@todo1, @todo1, @megaTodo1] )
+      expect( @todoList.splice( 1, 1, @todo1 ) ).toMatchArray( [@todo2] )
+      expect( @todoList ).toMatchArray( [@todo1, @todo1, @megaTodo1] )
 
     it "fires remove events", ->
       removeEvent = new EventCapture @todoList, "remove"
       @todoList.push( @megaTodo1, @megaTodo2 )
       @todoList.splice( 1, 2 )
-      expect( removeEvent.arguments ).toEqualArray( [@todoList, [@todo2, @megaTodo1], 1] )
+      expect( removeEvent.arguments ).toMatchArray( [@todoList, [@todo2, @megaTodo1], 1] )
       expect( removeEvent.timesFired ).toBe( 1 )
 
     it "fires add events", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.splice( 1, 0, @megaTodo1, @megaTodo2 )
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@megaTodo1, @megaTodo2], 1] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@megaTodo1, @megaTodo2], 1] )
       expect( addEvent.timesFired ).toBe( 1 )
 
     it "fires both events", ->
@@ -253,8 +253,8 @@ describe "List", ->
       addEvent = new EventCapture @todoList, "add"
       @todoList.push( @megaTodo1, @megaTodo2 )
       @todoList.splice( 1, 2, @todo1 )
-      expect( removeEvent.arguments ).toEqualArray( [@todoList, [@todo2, @megaTodo1], 1] )
-      expect( addEvent.arguments ).toEqualArray( [@todoList, [@todo1], 1] )
+      expect( removeEvent.arguments ).toMatchArray( [@todoList, [@todo2, @megaTodo1], 1] )
+      expect( addEvent.arguments ).toMatchArray( [@todoList, [@todo1], 1] )
 
   # Nested events
   # -------------
@@ -266,7 +266,7 @@ describe "List", ->
     it "bubbles change events", ->
       changeEvent = new EventCapture @todoList, "change"
       @todo1.set "rad", true
-      expect( changeEvent.arguments ).toEqualArray( [@todoList, @todo1, ["rad"]] )
+      expect( changeEvent.arguments ).toMatchArray( [@todoList, @todo1, ["rad"]] )
       expect( changeEvent.timesFired ).toBe( 1 )
 
     it "stops bubbling events when removed", ->
@@ -295,21 +295,21 @@ describe "List", ->
       result = @todoList.sort (a, b) ->
         Array._compare( a.get( "rad" ), b.get( "rad" ) )
       expect( result ).toBe( @todoList )
-      expect( @todoList ).toEqualArray( [@todo2, @todo1, @megaTodo1] )
+      expect( @todoList ).toMatchArray( [@todo2, @todo1, @megaTodo1] )
 
     it "sorts ascending with a model property", ->
       expect( @todoList.sort( "rad", "ascending" ) ).toBe( @todoList )
-      expect( @todoList ).toEqualArray( [@todo2, @todo1, @megaTodo1] )
+      expect( @todoList ).toMatchArray( [@todo2, @todo1, @megaTodo1] )
 
     it "sorts descending with a model property", ->
       expect( @todoList.sort( "rad", "descending" ) ).toBe( @todoList )
-      expect( @todoList ).toEqualArray( [@megaTodo1, @todo1, @todo2] )
+      expect( @todoList ).toMatchArray( [@megaTodo1, @todo1, @todo2] )
 
     it "fires the sort event", ->
       sortEvent = new EventCapture @todoList, "sort"
       @todoList.sort( "rad" )
       expect( sortEvent.timesFired ).toBe( 1 )
-      expect( sortEvent.arguments ).toEqualArray( [@todoList] )
+      expect( sortEvent.arguments ).toMatchArray( [@todoList] )
 
     it "doesn't fire the sort event if the order didn't change", ->
       sortEvent = new EventCapture @todoList, "sort"
@@ -323,13 +323,13 @@ describe "List", ->
 
     it "reverses the contents", ->
       expect( @todoList.reverse() ).toBe( @todoList )
-      expect( @todoList ).toEqualArray( [@megaTodo1, @todo2, @todo1] )
+      expect( @todoList ).toMatchArray( [@megaTodo1, @todo2, @todo1] )
 
     it "fires the sort event", ->
       sortEvent = new EventCapture @todoList, "sort"
       @todoList.reverse()
       expect( sortEvent.timesFired ).toBe( 1 )
-      expect( sortEvent.arguments ).toEqualArray( [@todoList, "reverse"] )
+      expect( sortEvent.arguments ).toMatchArray( [@todoList, "reverse"] )
 
     it "doesn't fire anything for lists with 0 or 1 elements", ->
       @todoList.pop()

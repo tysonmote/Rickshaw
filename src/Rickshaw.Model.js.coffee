@@ -51,6 +51,8 @@
 #
 Rickshaw._Model = new Class({
 
+  $family: -> "Model"
+
   Implements: [Events]
 
   # Options
@@ -68,8 +70,7 @@ Rickshaw._Model = new Class({
 
   # Initialize a new model.
   initialize: (data = {}) ->
-    # Setup uuid
-    Rickshaw.register( this )
+    Rickshaw.addUuid( this )
     this._initData data
     this._attachEvents()
     return this
@@ -149,16 +150,16 @@ Rickshaw._Model = new Class({
   # Update the value for the given property only if it is different. Returns
   # true if the property was changed and false otherwise.
   _set: (property, value) ->
-    newValue = Rickshaw.Utils.clone value
+    newValue = Rickshaw.clone value
     if customSetter = this["set#{property.forceCamelCase().capitalize()}"]
       newValue = customSetter.apply this, [newValue]
 
-    if Rickshaw.Utils.equal @_previousData[property], newValue
+    if Rickshaw.equal @_previousData[property], newValue
       @dirtyProperties = @dirtyProperties.erase property
     else
       @dirtyProperties.include property
 
-    if Rickshaw.Utils.equal @data[property], newValue
+    if Rickshaw.equal @data[property], newValue
       return false
     else
       @data[property] = newValue
@@ -168,4 +169,4 @@ Rickshaw._Model = new Class({
 
 })
 
-window.Model = Rickshaw.Utils.subclassConstructor Rickshaw._Model
+window.Model = Rickshaw.subclassConstructor "Model", Rickshaw._Model

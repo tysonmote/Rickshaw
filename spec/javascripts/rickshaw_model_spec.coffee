@@ -175,4 +175,4 @@ describe "Model", ->
         changeEvent = new EventCapture @todo, "change"
         @todo.toggle "done"
         expect( changeEvent.timesFired ).toBe( 1 )
-        expect( changeEvent.arguments ).toEqualArray( [@todo, ["done"]] )
+        expect( changeEvent.arguments ).toMatchArray( [@todo, ["done"]] )

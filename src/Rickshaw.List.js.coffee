@@ -19,6 +19,8 @@
 #
 Rickshaw._List = new Class({
 
+  $family: -> "List"
+
   Extends: Array
   Implements: [Events]
 
@@ -35,11 +37,10 @@ Rickshaw._List = new Class({
   # -----
 
   initialize: ->
-    Rickshaw.register( this )
     this.push.apply( this, arguments ) if arguments.length > 0
     return this
 
-  toString: -> "<List #{@$uuid}>"
+  toString: -> "<List>"
 
   # Array of all model UUIDs. Used for detecting changes after sorts without
   # assuming that every sort actually changed the sort order.
@@ -112,7 +113,7 @@ Rickshaw._List = new Class({
   # MooTools's implementation uses this.splice() and doesn't return the indexes
   # that were removed, so here's our own hot implementation here.
   erase: (model) ->
-    unless Rickshaw.Utils.isModelInstance( model )
+    unless Rickshaw.isModelInstance( model )
       throw new Error "Can't erase non-model objects yet."
     i = @length
     removedIndexes = []
@@ -204,7 +205,7 @@ Rickshaw._List = new Class({
   # instance (in which case it is simply returned) or a data hash, from which
   # a new model instance will be returned.
   _modelFrom: (data) ->
-    if Rickshaw.Utils.isModelInstance( data )
+    if Rickshaw.isModelInstance( data )
       return data
     else
       if typeOf( @ModelClass ) is "function"
@@ -216,4 +217,4 @@ Rickshaw._List = new Class({
   Binds: ["_modelChanged", "_modelDeleted", "_preattachModel", "_detachModel"]
 })
 
-window.List = Rickshaw.Utils.subclassConstructor( Rickshaw._List )
+window.List = Rickshaw.subclassConstructor( "List", Rickshaw._List )

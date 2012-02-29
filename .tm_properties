@@ -1,0 +1,3 @@
+excludeFiles = "{$excludeFiles,public/rickshaw.js}"
+excludeInFolderSearch = "{$excludeInFolderSearch,rickshaw.js}"
+excludeDirectories = "{$excludeDirectories,_site}"

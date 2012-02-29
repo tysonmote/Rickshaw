@@ -12,11 +12,6 @@ window.Rickshaw = {
 
   Templates: {}
 
-  # Contains every single Rickshaw object, keyed by uuid. This means we keep
-  # at least one reference to every single object, regardless if anything else
-  # points to it. HelloooOOOoo memory leaks! TODO: Fix.
-  _objects: {}
-
   # Auto-loaded templates
   # ---------------------
 
@@ -29,11 +24,13 @@ window.Rickshaw = {
   refreshTemplates: (idRegex=Rickshaw.templateRegex) ->
     Rickshaw.Templates ||= {}
     $$( "script[id^='#{Rickshaw.templatePrefix}']" ).each( (el) ->
-      if parsedId = idRegex.exec( el.get( "id" ) )
+      if parsedId = idRegex.exec( el.id )
         name = parsedId.getLast()
-        Rickshaw.Templates[name] = Handlebars.compile( el.get( "html" ) )
+        Rickshaw.addTemplate( name, handlebars )
     )
-    Rickshaw.Templates
+
+  addTemplate: (name, handlebars) ->
+    Rickshaw.Templates[name] = Handlebars.compile( handlebars, data: view: null )
 
   _uuidCounter: 0
 
@@ -41,29 +38,25 @@ window.Rickshaw = {
   uuid: ->
     "rickshaw-#{Rickshaw._uuidCounter++}"
 
-  register: (object) ->
+  addUuid: (object) ->
     object.$uuid = Rickshaw.uuid()
-    Rickshaw._objects[object.$uuid] = object
 
-  addParentClass: (object) ->
-    unless uuid = object.$constructor.$uuid
-      throw new Error "The given object (#{object.toString()}) doesn't have a parent Class with a UUID."
-    object._class = Rickshaw.get( uuid )
+  typeOf: (thing) ->
+    switch type = typeOf( thing )
+      when "object"
+        thing.__proto__?.$rickshawType || "object"
+      when "array"
+        thing.__proto__?.$rickshawType || "array"
+      else
+        type
 
-  get: (uuid) ->
-    @_objects[uuid]
-}
+  # Utilities
+  # ---------
 
-document.addEvent( "domready", Rickshaw.refreshTemplates )
-
-# Rickshaw.Utils
-# ==============
-
-Rickshaw.Utils = {
   # Deep clone the given object / array. Doesn't clone Element instances.
   clone: (item) ->
     switch typeOf( item )
-      when "array" then return item.clone()
+      when "array" then return Array.clone( item )
       when "object" then return Object.clone( item )
       else return item
 
@@ -72,67 +65,69 @@ Rickshaw.Utils = {
   equal: (a, b) ->
     aType = typeOf( a )
     return false unless aType is typeOf( b )
-    if aType is "array"
-      Array._equal( a, b )
-    else if aType is "object"
-      Object._equal( a, b )
-    else
-      a == b
+    switch aType
+      when "array" then return Array._equal( a, b )
+      when"object" then return Object._equal( a, b )
+      else return a == b
 
   # Return a Class constructor function that uses the given Class as a base
   # class. We use this so that we can use nested inheritance.
-  subclassConstructor: (baseClass) ->
-    (params) ->
-      constructor = new Class( Object.merge( { Extends: baseClass }, params ) )
-      Rickshaw.register constructor
+  subclassConstructor: (type, baseClass) ->
+    return (params) ->
+      params = Object.merge( { Extends: baseClass, $rickshawType: type }, params )
+      constructor = new Class( params )
       return constructor
 
   # Returns true if the given item is an instance of a Model subclass.
+  # TODO: Remove
   isModelInstance: (item) ->
-    !!( item.$uuid && item._get && item._set && item.data )
-
+    Rickshaw.typeOf( item ) == "Model"
 }
+
+document.addEvent( "domready", Rickshaw.refreshTemplates )
 
 # MooTools Extensions
 # ===================
 
-Array.extend({
-  # Returns true if the two arrays have the same values in the same order.
-  # Handles nested arrays and objects.
-  _equal: (arrayA, arrayB) ->
-    return false unless "array" == typeOf( arrayA ) == typeOf( arrayB )
-    return false unless arrayA.length == arrayB.length
-    return arrayA.every( (value, index) ->
-      switch typeOf( value )
-        when "object" then Object._equal( value, arrayB[index] )
-        when "array" then Array._equal( value, arrayB[index] )
-        else value == arrayB[index]
-    )
+# Array
+# -----
 
-  _compare: (a, b) =>
-    return -1 if a < b
-    return 0 if a == b
-    return 1
-})
+# Returns true if the two arrays have the same values in the same order.
+# Handles nested arrays and objects.
+Array._equal = (arrayA, arrayB) ->
+  return false unless "array" == typeOf( arrayA ) == typeOf( arrayB )
+  return false unless arrayA.length == arrayB.length
+  return true if arrayA is arrayB
+  return arrayA.every( (value, index) -> Rickshaw.equal( value, arrayB[index] ) )
+
+Array._compare = (a, b) ->
+  return -1 if a < b
+  return 0 if a == b
+  return 1
 
 Array.implement({
+  first: (fn, bind) ->
+    for element in this
+      return element if fn.call( bind, element )
+    return null
+
   mapProperty: (property) ->
     this.map( (item) -> item[property] )
 })
 
-Object.extend({
-  # Returns true if the two objects have the same keys and values. Handles
-  # nested arrays and objects.
-  _equal: (objectA, objectB) ->
-    return false unless "object" == typeOf( objectA ) == typeOf( objectB )
-    return false unless Object.keys( objectA ).sort().join( "" ) == Object.keys( objectB ).sort().join( "" )
-    return Object.every( objectA, (value, key) ->
-      switch typeOf( value )
-        when "object" then Object._equal( value, objectB[key] )
-        when "array" then Array._equal( value, objectB[key] )
-        else value == objectB[key]
-    )
-})
+# Object
+# ------
+
+# Returns true if the two objects have the same keys and values. Handles
+# nested arrays and objects.
+Object._equal = (objectA, objectB) ->
+  return false unless "object" == typeOf( objectA ) == typeOf( objectB )
+  return false unless Object.keys( objectA ).sort().join( "" ) == Object.keys( objectB ).sort().join( "" )
+  return true if objectA is objectB
+  return Object.every( objectA, (value, key) -> Rickshaw.equal( value, objectB[key] ) )
+
+# String
+# ------
 
 String.implement({
   # Stronger camelCase. Converts "this is-the_remix" to "thisIsTheRemix"

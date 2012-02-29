@@ -1,4 +1,3 @@
-# Metamorph extensions
 
 
 # Rickshaw.Metamorph
@@ -14,38 +13,34 @@
 #
 Rickshaw.Metamorph = new Class({
 
-  # Create a new Metamorph but doesn't insert it into the DOM yet.
-  initialize: (@controller, html="") ->
-    Rickshaw.register( this )
+  $family: -> "Metamorph"
+
+  # Create a new Metamorph but don't insert it into the DOM yet.
+  initialize: (@view, html="") ->
     @_morph = Metamorph( html )
     return this
 
-  toString: -> "<Rickshaw.Metamorph #{@$uuid}>"
+  toString: -> "<Rickshaw.Metamorph>"
 
   # Injecting
   # ---------
 
-  # Insert this metamorph to a place relative to the given element's children.
-  # Position can be "bottom" (default), "top", "after" or "before".
   inject: (element, position="bottom") ->
     element = $( element )
-    if position is "top"
-      if firstChild = element.getElement( "*" )
-        this._injectBefore( firstChild )
+    switch position
+      when "top"
+        if firstChild = element.getFirst( "*" )
+          this._injectBefore( firstChild )
+        else
+          @_morph.appendTo( element )
+      when "before"
+        this._injectBefore( element )
+      when "after"
+        this._injectAfter( element )
       else
         @_morph.appendTo( element )
-    else if position is "before"
-      this._injectBefore( element )
-    else if position is "after"
-      this._injectAfter( element )
-    else if position is "bottom"
-      @_morph.appendTo( element )
-    else
-      throw new Error "\"#{position}\" is not a valid metamorph inject position."
 
-    unless @storedOnStartMarker
-      this.startMarkerElement().store( "rickshaw-metamorph", this )
-      @storedOnStartMarker = true
+    this._storeViewOnStartTag()
     return this
 
   _injectAfter: (element) ->
@@ -61,15 +56,22 @@ Rickshaw.Metamorph = new Class({
     fragment = range.createContextualFragment( @_morph.outerHTML() )
     range.insertNode( fragment )
 
+  # Removing
+  # --------
+
+  remove: ->
+    @_stored = false
+    delete @_startMarkerElement
+    delete @_endMarkerElement
+    @_morph.remove()
+
   # Inner HTML
   # ----------
 
   # Set this Metamorph's inner HTML content.
   setHTML: (html) ->
     @_morph.html( html )
-    unless @storedOnStartMarker
-      this.startMarkerElement().store( "rickshaw-metamorph", this )
-      @storedOnStartMarker = true
+    this._storeViewOnStartTag()
 
   # Metamorph markers
   # -----------------
@@ -109,8 +111,17 @@ Rickshaw.Metamorph = new Class({
 
     return rootElements
 
-  # Returns all elements that match the given selector, including root elements
-  # of the Metamorph.
+  getElement: (selector) ->
+    rootElements = this.rootElements()
+    # root elements that match the selector
+    match = rootElements.first (el) -> el.match( selector )
+    # check descendant elements if needed
+    unless match
+      for el in rootElements
+        match = el.getElement( selector )
+        continue if match
+    return match
+
   getElements: (selector) ->
     rootElements = this.rootElements()
     matches = new Elements()
@@ -119,42 +130,55 @@ Rickshaw.Metamorph = new Class({
     # descendant elements that match the selector
     matches.append( rootElements.getElements( selector ).flatten() )
     return matches
+
+  # Ensure that the view is stored on the start marker tag
+  _storeViewOnStartTag: ->
+    unless @_stored
+      this.startMarkerElement().store( "rickshaw-view", @view )
+      @_stored = true
 })
 
+# Rickshaw.Metamorph.findView
+# ===========================
+
 # Given an element, and the event, selector, and type that was fired, return
-# the corresponding Rickshaw.Metamorph instance.
-Rickshaw.Metamorph.findMetamorph = (element, eventFn, eventSelector, eventType) ->
-  isMatchingMetamorph = (element) ->
-    unless element.tagName is "SCRIPT" and element.id?.match( /^metamorph-\d+-start$/ )
-      return false
-    controller = element.retrieve( "rickshaw-metamorph" ).controller
-    return false unless controller
-    controllerFn = controller.Events[eventSelector]?[eventType]
-    # Resolve to instance method
-    controllerFn = controller[controllerFn] if typeof controllerFn is "string"
-    return controllerFn == eventFn
-
-  # Find previous sibling metamorph start tag, walking up the tree if
-  # necessary.
-  findPreviousMetamorphStart = (element) ->
-    if previous = element.getPrevious( "script[type='text/x-placeholder']" )
-      return previous
-    else if parent = element.getParent()
-      return parent if parent is document.body
-      until parent is document.body or previous = parent.getPrevious( "script[type='text/x-placeholder']" )
-        parent = parent.getParent()
-      if parent is document.body
-        return document.body
-      else
-        return previous
-    else
-      return document.body
-
+# the corresponding view instance.
+Rickshaw.Metamorph.findView = (element, eventFn, elementSelector, eventType) ->
   cursor = element
-  until cursor is document.body or isMatchingMetamorph( cursor )
-    cursor = findPreviousMetamorphStart( cursor )
+  until !cursor or Rickshaw.Metamorph.isMatchingMetamorph( cursor, eventFn, elementSelector, eventType )
+    cursor = Rickshaw.Metamorph.findPreviousMetamorphStart( cursor )
 
-  if cursor is document.body
-    throw new Error "findController() reached <body> without finding a matching metamorph."
+  if cursor is null
+    throw new Error "Rickshaw.Metamorph.findMetamorph() reached <body> without finding a matching Metamorph."
   else
-    return cursor.retrieve( "rickshaw-metamorph" )
+    return cursor.retrieve( "rickshaw-view" )
+
+# Return true if the given Metamorph start marker element should handle the
+# given event.
+Rickshaw.Metamorph.isMatchingMetamorph = (element, eventFn, elementSelector, eventType) ->
+  unless element.tagName is "SCRIPT" and element.id?.match( /^metamorph-\d+-start$/ )
+    return false
+  controller = element.retrieve( "rickshaw-view" ).controller
+  unless controllerFn = controller._boundEvents[elementSelector]?[eventType]
+    return false
+  # Resolve to instance method
+  controllerFn = controller[controllerFn] if typeof controllerFn is "string"
+  return controllerFn == eventFn
+
+# Given an element, find the first Metamorph start tag above it. If no start tag
+# can be found, null is returned.
+Rickshaw.Metamorph.findPreviousMetamorphStart = (element) ->
+  if previous = element.getPrevious( "script[type='text/x-placeholder']" )
+    return previous
+  else if parent = element.getParent()
+    # Walk up the chain until we can find a previous-sibiling Metamorph tag
+    return null if parent is document.body
+    until parent is document.body or previous = parent.getPrevious( "script[type='text/x-placeholder']" )
+      parent = parent.getParent()
+    if parent is document.body
+      return null
+    else
+      return previous
+  else
+    # We hit document.body
+    return null

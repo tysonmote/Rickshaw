@@ -2,3 +2,4 @@ cache
 scripts
 .sass-cache/
 _site
+public/rickshaw.js

@@ -6,10 +6,33 @@ require "/rickshaw.js"
 describe "Rickshaw.Metamorph", ->
   beforeEach setupCustomMatchers
 
+  describe "#findView()", ->
+    beforeEach ->
+      @Todo = new Model()
+      @todo = new @Todo({})
+      Rickshaw.addTemplate( "todo", "<p>Rad.</p>" )
+      @TodoController = new Controller(
+        Template: "todo"
+        Events: p: click: -> false
+      )
+      @todoController = new @TodoController( @todo, $( "test" ) )
+
+    it "returns the correct View instance for an element + event function", ->
+      element = $( "test" ).getElement( "p" )
+      event = @TodoController.prototype.Events.p.click
+      expect( Rickshaw.Metamorph.findView( element, event, "p", "click" ) ).toBeInstanceOf( View )
+      expect( Rickshaw.Metamorph.findView( element, event, "p", "click" ).controller ).toBe( @todoController )
+      expect( -> Rickshaw.Metamorph.findView( element, (->), "p", "click" ) )
+        .toThrowException( /reached <body> without finding a matching Metamorph/ )
+      expect( -> Rickshaw.Metamorph.findView( element, event, "404", "click" ) )
+        .toThrowException( /reached <body> without finding a matching Metamorph/ )
+      expect( -> Rickshaw.Metamorph.findView( element, event, "p", "404" ) )
+        .toThrowException( /reached <body> without finding a matching Metamorph/ )
+
   describe "with no sibling metamorphs", ->
     beforeEach ->
-      @fakeController = {}
-      @morph = new Rickshaw.Metamorph( @fakeController, "
+      @fakeView = {}
+      @morph = new Rickshaw.Metamorph( @fakeView, "
         <div class='rad'>You betcha.</div>
         <div class='neat'>
           <div class='super'>Tubular.</div>
@@ -61,8 +84,8 @@ describe "Rickshaw.Metamorph", ->
       expect( @morph.endMarkerElement().tagName ).toBe( "SCRIPT" )
       expect( @morph.endMarkerElement().id ).toMatch( /metamorph-\d+-end/ )
 
-    it "stores the controller instance on the start marker", ->
-      expect( @morph.startMarkerElement().retrieve( "rickshaw-controller" ) ).toBe( @fakeController )
+    it "stores the view instance on the start marker", ->
+      expect( @morph.startMarkerElement().retrieve( "rickshaw-view" ) ).toBe( @fakeView )
 
   describe "with sibling metamorphs", ->
     beforeEach ->
@@ -73,16 +96,16 @@ describe "Rickshaw.Metamorph", ->
       #     <div#neat>...</div> (morph1)
       #     <p#funky></p>       (morph2)
       #
-      @fakeController1 = {}
-      @morph1 = new Rickshaw.Metamorph( @fakeController1, "
+      @fakeView1 = {}
+      @morph1 = new Rickshaw.Metamorph( @fakeView1, "
         <div id='rad'>You betcha.</div>
         <div id='neat'>
           <div id='lolcat'>Definitely.</div>
           <span class='cool'>Nested, yo.</span>
         </div>
       ")
-      @fakeController2 = {}
-      @morph2 = new Rickshaw.Metamorph( @fakeController2, "
+      @fakeView2 = {}
+      @morph2 = new Rickshaw.Metamorph( @fakeView2, "
         <p id='funky'>Right on.</p>
       ")
       $( "test" ).set "html", "<p>Already here.</p>"
@@ -121,5 +144,5 @@ describe "Rickshaw.Metamorph", ->
       expect( @morph1.endMarkerElement().id ).not.toEqual( @morph2.endMarkerElement().id )
 
     it "stores the controller instance on the start marker", ->
-      expect( @morph1.startMarkerElement().retrieve( "rickshaw-controller" ) ).toBe( @fakeController1 )
-      expect( @morph2.startMarkerElement().retrieve( "rickshaw-controller" ) ).toBe( @fakeController2 )
+      expect( @morph1.startMarkerElement().retrieve( "rickshaw-view" ) ).toBe( @fakeView1 )
+      expect( @morph2.startMarkerElement().retrieve( "rickshaw-view" ) ).toBe( @fakeView2 )
