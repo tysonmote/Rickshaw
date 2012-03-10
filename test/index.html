@@ -1,0 +1,49 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mocha Tests</title>
+
+  <link rel="stylesheet" href="/test/vendor/mocha.css" />
+
+  <script>
+    // Crappy hack to allow "expect(...).to.have.been.called.with(...)"
+    expectFlags = {
+      not: ['to', 'be', 'have', 'include', 'only'],
+      to: ['be', 'have', 'include', 'only', 'not'],
+      only: ['have'],
+      have: ['own', 'been'],
+      be: ['an'],
+    };
+  </script>
+
+  <script src="/public/vendor/mootools-core.js"></script>
+  <script src="/public/vendor/handlebars.js"></script>
+  <script src="/public/vendor/metamorph.js"></script>
+  <script src="/src/Rickshaw.js.js"></script>
+  <script src="/src/Rickshaw.Model.js.js"></script>
+  <script src="/src/Rickshaw.List.js.js"></script>
+  <script src="/src/Rickshaw.Controllers.js.js"></script>
+  <script src="/src/Rickshaw.Views.js.js"></script>
+  <script src="/src/Rickshaw.Metamorph.js.js"></script>
+
+  <script src="/test/vendor/mocha.js"></script>
+  <script src="/test/vendor/expect.js"></script>
+  <script src="/test/vendor/sinon.js"></script>
+  <script src="/test/spec_helper.js"></script>
+  <script>mocha.setup('bdd');</script>
+
+  <script src="/test/matcher_spec.js"></script>
+  <script src="/test/rickshaw_spec.js"></script>
+  <script src="/test/rickshaw_model_spec.js"></script>
+  <script src="/test/rickshaw_list_spec.js"></script>
+  <script src="/test/rickshaw_controller_spec.js"></script>
+  <script src="/test/rickshaw_metamorph_spec.js"></script>
+</head>
+<body>
+  <div id="mocha"></div>
+  <div id="test"></div>
+  <script>
+    mocha.run()
+  </script>
+</body>
+</html>

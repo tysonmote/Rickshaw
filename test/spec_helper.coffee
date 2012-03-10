@@ -1,17 +1,56 @@
-# Reset Rickshaw before each spec.
-beforeEach ->
-  if window.Rickshaw
-    Rickshaw.Templates = {}
+window.resetRickshaw = ->
+  $( "test" ).innerHTML = ""
+  Rickshaw.Templates = {}
 
-# ==================
-# = Helper methods =
-# ==================
+# ==============
+# = Assertions =
+# ==============
+
+Assertion = expect.Assertion
+
+Assertion::matchArray = (expected) ->
+  this.assert(
+    Array._equal( this.obj, expected ),
+    "expected #{this.obj} to match array #{expected}",
+    "expected #{this.obj} not to match array #{expected}"
+  )
+
+Assertion::instanceOf = (expected) ->
+  this.assert(
+    instanceOf( this.obj, expected ),
+    "expected #{this.obj} to be an instance of #{expected}",
+    "expected #{this.obj} not to be an instance of #{expected}",
+  )
+
+Assertion::called = ->
+  spy = this.obj
+  this.assert(
+    spy.called,
+    "expected #{spy} to be called, but it wasn't",
+    "expected #{spy} not to be called, but it was called with #{spy.args}"
+  )
+
+Assertion::calledWith = (expected) ->
+  spy = this.obj
+  this.assert(
+    spy.called and spy.calledWith( expected ),
+    "expected #{spy} to be called with #{expected}, but it wasn't",
+    "expected #{spy} not to be called with #{expected}, but it was"
+  )
+
+Assertion::calledOnce = ->
+  spy = this.obj
+  this.assert(
+    spy.callCount == 1,
+    "expected #{spy} to be called once, but it was called #{spy.callCount} times",
+    "expected #{spy} not to be called once, but it was"
+  )
 
 # ============
 # = Fixtures =
 # ============
 
-window.Fixtures = {}
+window.Fixtures = Fixtures = {}
 
 Fixtures.simpleTodoModel = ->
   @Todo = new Model()
@@ -48,53 +87,6 @@ Fixtures.simpleTodoControllerWithClickEvent = ->
   })
   @todoController = new @TodoController( @todo )
 
-# ============
-# = Matchers =
-# ============
-
-window.setupCustomMatchers = ->
-  this.addMatchers {
-    toBeEmpty: ->
-      return this.actual.length == 0
-
-    # Recurses into nested arrays and objects instead of just doing [] == []
-    # (which is false in JavaScript).
-    toMatchArray: (expected) ->
-      return Array._equal( this.actual, expected )
-
-    # Ensures that the given object has the appropriate prototype.
-    toBeInstanceOf: (expected) ->
-      return instanceOf( this.actual, expected )
-
-    # Matches an exception with a regexp.
-    toThrowException: (expected) ->
-      exception = null
-
-      try
-        this.actual()
-      catch e
-        exception = e
-
-      if this.isNot
-        _not_ = " not "
-        result = true
-        if exception?.message?.match
-          result = !exception.message.match( expected )
-      else
-        _not_ = " "
-        result = false
-        if exception?.message?.match
-          result = !!exception.message.match( expected )
-
-      this.message = ->
-        if exception
-          return "\"#{exception.message || exception}\" was raised, but we expected it#{_not_}to match #{expected}."
-        else
-          return "Expected an exception but got nothing."
-
-      if this.isNot then return !result else return result
-  }
-
 # ================
 # = EventCapture =
 # ================
@@ -107,7 +99,7 @@ window.setupCustomMatchers = ->
 #     clickEvent.timesFired # times fired
 #     clickEvent.reset() # reset captured args and fire count
 #
-class window.EventCapture
+class EventCapture
   constructor: (@object, @event) ->
     @object.addEvent( @event, =>
       @timesFired += 1
@@ -118,3 +110,5 @@ class window.EventCapture
   reset: ->
     @timesFired = 0
     @arguments = null
+
+window.EventCapture = EventCapture

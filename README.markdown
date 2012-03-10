@@ -5,7 +5,7 @@ Rickshaw is small but full-featured client-side MVC framework using (and
 adhering to the idioms of) [MooTools][mootools] for models and controllers and
 [Handlebars][handlebars] for templating (views).
 
-[Documentation][docs] (in progress)
+[Documentation][docs] (in progress, already out of date)
 
 Rickshaw depends on a [subset of MooTools][mootools_subset]
 
@@ -44,6 +44,8 @@ To do
 * Better model change bindings
   * Ember.js-style might be overly ambitious / heavy, but it's worth
     investigation
+* Get specs running in command-line, too
+  * See https://github.com/logicalparadox/chai-spies for info
 
 Misc:
 
@@ -52,29 +54,24 @@ Misc:
 Development
 -----------
 
-To watch source files for changes:
+To watch source files for changes and recompile to `public/rickshaw.js`:
 
-    bundle
-    bundle exec guard
+    > bundle install
+    > bundle exec guard
 
 I'm using Growl for notifications. If you want Growl notifications for the
 build, [download and install GrowlNotify](http://growl.info/downloads#generaldownloads).
 
-Specs
+You don't need to watch for changes while testing. Coffeeshop will automatically pick up the changes.
+
+Tests
 -----
 
-If you want to run the specs headlessly (warning: `qt` is fairly hefty):
+Install [coffeeshop](https://github.com/tysontate/coffeeshop):
 
-    brew update
-    brew install qt
-    bundle install
-    bundle exec evergreen run
+    > bundle install
 
-Or if you don't want / need to run them headlessly:
+Run coffeeshop to serve up the files:
 
-    rm .evergreen
-    bundle install --without headless
-    bundle exec evergreen serve
-
-(`.evergreen` simply has the config for headless specs. Removing that file
-will tell `evergreen` to default to Selenium.)
+    > coffeeshop
+    > open "http://localhost:4567/test"
