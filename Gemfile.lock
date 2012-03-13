@@ -5,7 +5,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.2.0)
-    coffeeshop (1.0.0)
+    coffeeshop (1.0.1)
       coffee-script
       redis
       sinatra
