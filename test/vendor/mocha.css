@@ -1,6 +1,6 @@
 
 body {
-  font: 20px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 20px/1.5 Helvetica, Arial, sans-serif;
   padding: 60px 50px;
 }
 
@@ -9,14 +9,15 @@ body {
 }
 
 #mocha h1 {
-  margin-top: 15px;
+  margin-top: 20px;
   font-size: 1em;
-  font-weight: 200;
+  font-weight: bold;
 }
 
 #mocha .suite .suite h1 {
   margin-top: 0;
-  font-size: .8em;
+  font-size: 13px;
+  font-weight: bold;
 }
 
 #mocha h2 {
@@ -111,7 +112,7 @@ body {
   right: 10px;
   font-size: 12px;
   margin: 0;
-  color: #888;
+  color: #666;
 }
 
 #stats .progress {
@@ -121,6 +122,8 @@ body {
 
 #stats em {
   color: black;
+  font-style: normal;
+  font-weight: bold;
 }
 
 #stats li {
