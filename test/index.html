@@ -43,7 +43,11 @@
   <div id="mocha"></div>
   <div id="test"></div>
   <script>
-    mocha.run()
+    // Turn off globals until this is merged:
+    // https://github.com/visionmedia/mocha/pull/305
+    // It's slow.
+    mocha.Runner.prototype.checkGlobals = function() {};
+    mocha.run();
   </script>
 </body>
 </html>
