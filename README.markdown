@@ -71,7 +71,7 @@ Install [coffeeshop](https://github.com/tysontate/coffeeshop):
 
     > bundle install
 
-Run coffeeshop to serve up the files:
+Run coffeeshop to serve up the tests:
 
     > coffeeshop
     > open "http://localhost:4567/test"
