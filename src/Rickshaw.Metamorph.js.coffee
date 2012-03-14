@@ -161,7 +161,7 @@ Rickshaw.Metamorph.isMatchingMetamorph = (element, eventFn, elementSelector, eve
     return false
   # Resolve to instance method
   controllerFn = controller[controllerFn] if typeof controllerFn is "string"
-  return controllerFn == eventFn
+  return controllerFn is eventFn
 
 # Given an element, find the first Metamorph start tag above it. If no start tag
 # can be found, null is returned.

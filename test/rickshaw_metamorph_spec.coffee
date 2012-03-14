@@ -14,15 +14,15 @@ describe "Rickshaw.Metamorph", ->
 
     it "returns the correct View instance for an element + event function", ->
       element = $( "test" ).getElement( "p" )
-      event = @TodoController.prototype.Events.p.click
+      event = @todoController._boundEvents.p.click
       expect( Rickshaw.Metamorph.findView( element, event, "p", "click" ) ).to.be.instanceOf( View )
       expect( Rickshaw.Metamorph.findView( element, event, "p", "click" ).controller ).to.be( @todoController )
       expect( -> Rickshaw.Metamorph.findView( element, (->), "p", "click" ) )
-        .toThrowException( /reached <body> without finding a matching Metamorph/ )
+        .to.throwException( /reached <body> without finding a matching Metamorph/ )
       expect( -> Rickshaw.Metamorph.findView( element, event, "404", "click" ) )
-        .toThrowException( /reached <body> without finding a matching Metamorph/ )
+        .to.throwException( /reached <body> without finding a matching Metamorph/ )
       expect( -> Rickshaw.Metamorph.findView( element, event, "p", "404" ) )
-        .toThrowException( /reached <body> without finding a matching Metamorph/ )
+        .to.throwException( /reached <body> without finding a matching Metamorph/ )
 
   describe "with no sibling metamorphs", ->
     beforeEach ->
