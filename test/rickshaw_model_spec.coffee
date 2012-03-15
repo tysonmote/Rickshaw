@@ -1,11 +1,11 @@
 describe "Model", ->
   beforeEach resetRickshaw
 
-  describe "creating", ->
+  describe "sanity", ->
     beforeEach ->
       @Todo = new Model()
 
-    it "creates an instance", ->
+    it "new creates an instance", ->
       todo = new @Todo()
       expect( instanceOf( todo, @Todo ) ).to.be( true )
 
@@ -153,7 +153,7 @@ describe "Model", ->
   describe "#toggle()", ->
     beforeEach ->
       @Todo = new Model {
-        getDone: -> @data.done == "true"
+        getDone: -> @data.done is "true"
         setDone: (value) -> return "#{value}"
       }
       @todo = new @Todo()
@@ -161,7 +161,7 @@ describe "Model", ->
     it "toggles the value and uses custom getters / setters", ->
       expect( @todo.toggle "done" ).to.be( @todo )
       expect( @todo.get "done" ).to.be( true )
-      expect( @todo.data.done ).to.eql( "true" )
+      expect( @todo.data.done ).to.be( "true" )
 
     it "marks value as dirty", ->
       @todo.toggle "done"

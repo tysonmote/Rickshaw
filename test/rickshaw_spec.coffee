@@ -2,11 +2,9 @@ describe "Rickshaw", ->
   beforeEach resetRickshaw
 
   describe "template loading", ->
-    it "auto-detects and compiles templates", ->
-      # TODO
+    it "auto-detects and compiles templates"
 
-    it "re-detects and compiles templates", ->
-      # TODO
+    it "re-detects and compiles templates"
 
   describe "UUIDs", ->
     UUID_REGEX = /^rickshaw-[0-9]+$/

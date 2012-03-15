@@ -1,22 +1,8 @@
 describe "List", ->
   beforeEach resetRickshaw
+  beforeEach Fixtures.todoLists
 
-  beforeEach ->
-    @Todo = Todo = new Model()
-    @MegaTodo = MegaTodo = new Model()
-    @TodoList = new List {
-      ModelClass: Todo
-    }
-    @CombinedTodoList = new List {
-      ModelClass: (data) ->
-        if data.isMegaTodo then MegaTodo else Todo
-    }
-    @todo1 = new @Todo {num: "one"}
-    @todo2 = new @Todo {num: "two"}
-    @megaTodo1 = new @Todo {num: "three"}
-    @megaTodo2 = new @Todo {num: "four"}
-
-  describe "creating", ->
+  describe "sanity", ->
     it "creates an empty Array-like list", ->
       todoList = new @TodoList()
       expect( todoList ).to.matchArray( [] )
@@ -24,7 +10,7 @@ describe "List", ->
       expect( typeOf( todoList ) ).to.be( "array" )
 
     it "creates pre-filled lists", ->
-      todoList = new @TodoList @todo1, @todo2
+      todoList = new @TodoList( @todo1, @todo2 )
       expect( todoList ).to.matchArray( [@todo1, @todo2] )
 
   # Adding

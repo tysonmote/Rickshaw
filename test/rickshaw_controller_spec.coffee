@@ -2,7 +2,7 @@ describe "Controller", ->
   beforeEach resetRickshaw
 
   describe "creating", ->
-    beforeEach Fixtures.simpleTodoController
+    beforeEach Fixtures.todoController
 
     it "has an associated model", ->
       expect( @todoController.model ).to.be( @todo )
@@ -28,7 +28,7 @@ describe "Controller", ->
       expect( event.arguments ).to.matchArray( [1, "cool"] )
 
   describe "model events", ->
-    beforeEach Fixtures.simpleTodoController
+    beforeEach Fixtures.todoController
     beforeEach ->
       @todoControllerModelChangedMethod = sinon.spy( @todoController, "_modelChanged" )
       @todoController.setModel( @todo )
@@ -49,13 +49,13 @@ describe "Controller", ->
       expect( @todoControllerModelChangedMethod ).not.to.have.been.called()
 
   describe "defer to model", ->
-    beforeEach Fixtures.simpleTodoControllerWithDefer
+    beforeEach Fixtures.todoControllerWithDefer
 
     it "should be able to defer methods to the model", ->
       expect( @todoController.num() ).to.eql( "one" )
 
   describe "rendering", ->
-    beforeEach Fixtures.simpleTodoControllerWithClickEvent
+    beforeEach Fixtures.todoControllerWithClickEvent
 
     it "doesn't render without a destination", ->
       expect( @todoController.render() ).to.be( false )
@@ -91,7 +91,7 @@ describe "Controller", ->
       expect( todoController.rendered ).to.be( true )
 
   describe "events", ->
-    beforeEach Fixtures.simpleTodoControllerWithClickEvent
+    beforeEach Fixtures.todoControllerWithClickEvent
 
     it "attaches element events on render", ->
       @todoController.renderTo( $( "test" ) )

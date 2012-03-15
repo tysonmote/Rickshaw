@@ -2,15 +2,7 @@ describe "Rickshaw.Metamorph", ->
   beforeEach resetRickshaw
 
   describe "#findView()", ->
-    beforeEach ->
-      @Todo = new Model()
-      @todo = new @Todo({})
-      Rickshaw.addTemplate( "todo", "<p>Rad.</p>" )
-      @TodoController = new Controller(
-        Template: "todo"
-        Events: p: click: -> false
-      )
-      @todoController = new @TodoController( @todo, $( "test" ) )
+    beforeEach Fixtures.renderedTodoWithClickEvent
 
     it "returns the correct View instance for an element + event function", ->
       element = $( "test" ).getElement( "p" )

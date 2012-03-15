@@ -52,12 +52,27 @@ Assertion::calledOnce = ->
 
 window.Fixtures = Fixtures = {}
 
-Fixtures.simpleTodoModel = ->
+Fixtures.todoModel = ->
   @Todo = new Model()
   @todo = new @Todo( num: "one" )
 
-Fixtures.simpleTodoController = ->
-  Fixtures.simpleTodoModel.call( this )
+Fixtures.todoLists = ->
+  @Todo = Todo = new Model()
+  @MegaTodo = MegaTodo = new Model()
+  @TodoList = new List {
+    ModelClass: Todo
+  }
+  @CombinedTodoList = new List {
+    ModelClass: (data) ->
+      if data.isMegaTodo then MegaTodo else Todo
+  }
+  @todo1 = new @Todo {num: "one"}
+  @todo2 = new @Todo {num: "two"}
+  @megaTodo1 = new @Todo {num: "three"}
+  @megaTodo2 = new @Todo {num: "four"}
+
+Fixtures.todoController = ->
+  Fixtures.todoModel.call( this )
   Rickshaw.addTemplate( "todo", "<p class='todo {{klass}}'>{{text}}</p>" )
   @TodoController = new Controller(
     Template: "todo",
@@ -66,8 +81,8 @@ Fixtures.simpleTodoController = ->
   )
   @todoController = new @TodoController( @todo )
 
-Fixtures.simpleTodoControllerWithDefer = ->
-  Fixtures.simpleTodoModel.call( this )
+Fixtures.todoControllerWithDefer = ->
+  Fixtures.todoModel.call( this )
   Rickshaw.addTemplate( "todo", "<p class='todo'>{{num}}</p>" )
   @TodoController = new Controller(
     Template: "todo",
@@ -75,8 +90,8 @@ Fixtures.simpleTodoControllerWithDefer = ->
   )
   @todoController = new @TodoController( @todo )
 
-Fixtures.simpleTodoControllerWithClickEvent = ->
-  Fixtures.simpleTodoModel.call( this )
+Fixtures.todoControllerWithClickEvent = ->
+  Fixtures.todoModel.call( this )
   Rickshaw.addTemplate( "todo", "<p class='todo {{klass}}'>{{num}}</p>" )
   @TodoController = new Controller({
     Template: "todo"
@@ -86,6 +101,15 @@ Fixtures.simpleTodoControllerWithClickEvent = ->
       p: click: -> @todoClickArguments = Array.from( arguments )
   })
   @todoController = new @TodoController( @todo )
+
+Fixtures.renderedTodoWithClickEvent = ->
+  Fixtures.todoModel.call( this )
+  Rickshaw.addTemplate( "todo", "<p>Rad.</p>" )
+  @TodoController = new Controller(
+    Template: "todo"
+    Events: p: click: -> false
+  )
+  @todoController = new @TodoController( @todo, $( "test" ) )
 
 # ================
 # = EventCapture =
