@@ -19,7 +19,7 @@
 #
 Rickshaw._List = new Class({
 
-  $family: -> "List"
+  $rickshawType: -> "List"
 
   Extends: Array
   Implements: [Events]

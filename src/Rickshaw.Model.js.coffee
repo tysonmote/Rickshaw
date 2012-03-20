@@ -51,7 +51,7 @@
 #
 Rickshaw._Model = new Class({
 
-  $family: -> "Model"
+  $rickshawType: -> "Model"
 
   Implements: [Events]
 

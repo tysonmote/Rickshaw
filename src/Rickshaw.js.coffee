@@ -44,9 +44,9 @@ window.Rickshaw = {
   typeOf: (thing) ->
     switch type = typeOf( thing )
       when "object"
-        thing.__proto__?.$rickshawType || "object"
+        thing.$rickshawType || "object"
       when "array"
-        thing.__proto__?.$rickshawType || "array"
+        thing.$rickshawType || "array"
       else
         type
 

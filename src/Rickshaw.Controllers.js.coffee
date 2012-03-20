@@ -134,7 +134,7 @@ Rickshaw._BaseController = new Class({
 #
 Rickshaw._Controller = new Class({
 
-  $family: -> "Controller"
+  $rickshawType: -> "Controller"
 
   Extends: Rickshaw._BaseController
 
@@ -153,12 +153,12 @@ Rickshaw._Controller = new Class({
 
   # Sets this controller's associated model instance and re-renders all
   # Metamorphs.
-  setModel: (model, render=true) ->
+  setModel: (model, render = null) ->
     this._detachModelEvents( @model ) if @model
     @model = model
     this._setupModelDefers( @model )
     this._attachModelEvents( @model )
-    this.render() if render
+    this.render() if render is true or ( render is null and @rendered )
     return this
 
   _setupModelDefers: (model) ->
@@ -193,7 +193,7 @@ window.Controller = Rickshaw.subclassConstructor( "Controller", Rickshaw._Contro
 #
 Rickshaw._ListController = new Class({
 
-  $family: -> "ListController"
+  $rickshawType: -> "ListController"
 
   Extends: Rickshaw._BaseController
 
@@ -234,9 +234,6 @@ Rickshaw._ListController = new Class({
   setList: (list, render=true) ->
     unless Rickshaw.typeOf( list ) is "List"
       throw new Error "ListController#setList() must be passed a List instance. You passed a(n) #{Rickshaw.typeOf( list )}"
-    if @list
-      previousList = @list
-      throw new Error "OK..."
     this._detachListEvents( @list ) if @list
     @list = list
     this._attachListEvents( @list )
@@ -291,22 +288,41 @@ Rickshaw._ListController = new Class({
 
   _onModelsAdd: (list, models, position="unknown") ->
     return unless @rendered and models.length > 0
-    switch position
-      when "end"
-        for model in models
-          subcontroller = this.subcontrollerFor( model )
-          this.fireEvent( "modelAppend", [subcontroller] )
-      when "beginning"
-        for model in models.reverse()
-          subcontroller = this.subcontrollerFor( model )
-          this.fireEvent( "modelPrepend", [subcontroller] )
-      else
-        this.render()
+    if position is "end"
+      for model in models
+        subcontroller = this.subcontrollerFor( model )
+        this.fireEvent( "modelAppend", [subcontroller] )
+    else if position is "beginning"
+      for model in models.reverse()
+        subcontroller = this.subcontrollerFor( model )
+        this.fireEvent( "modelPrepend", [subcontroller] )
+    else if typeof position is "number"
+      index = position
+      for model in models
+        subcontroller = this.subcontrollerFor( model )
+        this.fireEvent( "modelInsert", [subcontroller, index] )
+        index++
+    else
+      throw new Error "#{position} is an unknown add position."
 
-  # TODO
   _onModelsRemove: (list, models, position="unknown") ->
     return unless @rendered
-    this.render()
+    count = models.length
+    if position is "end"
+      startIndex = @views[0].subviews[0].subviews.length - count
+      this._unrenderRange( startIndex, count )
+    else if position is "beginning"
+      this._unrenderRange( 0, count )
+    else if typeof position is "number"
+      this._unrenderRange( position, count )
+    else
+      throw new Error "#{position} is an unknown remove position."
+
+  _unrenderRange: (startIndex, count) ->
+    for view in @views
+      for listview in view.subviews
+        removedSubviews = listview.subviews.splice( startIndex, count )
+        removedSubviews.each( (subview) -> subview.unrender() )
 
   # TODO
   _onListSort: ->

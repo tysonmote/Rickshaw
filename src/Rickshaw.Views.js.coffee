@@ -10,12 +10,14 @@
 #
 window.View = new Class
 
+  $rickshawType: "View"
+
   Implements: [Events]
 
   initialize: (@controller, @templateName, element, position="bottom") ->
     if typeof @templateName is "string"
       unless this.template = Rickshaw.Templates[@templateName]
-        throw new Error "Template \"#{template}\" not found in Rickshaw.Templates."
+        throw new Error "Template \"#{@templateName}\" not found in Rickshaw.Templates."
     unless @controller
       throw new Error "The associated controller for #{this} can't be false-y."
 
@@ -56,13 +58,25 @@ window.View = new Class
   injectPlaceholder: (element, location = "bottom") ->
     @morph.inject( element, location )
 
+  # Destroying
+  # ----------
+
+  unrender: ->
+    @morph.remove()
+    @rendered = false
+
   # Subcontrollers / subviews
   # -------------------------
 
   # Returns a new sub-View instance for the given subcontroller.
   _subview: (subcontroller, method = "push") ->
     view = new View( subcontroller, subcontroller.Template )
-    @subviews[method]( view )
+    if typeof method is "string"
+      @subviews[method]( view )
+    else if typeof method is "number"
+      @subviews.splice( method, 0, view )
+    else
+      throw new Error "#{method} is an invalid subview insert method."
     return view
 
   # Returns a new ListView instance for our subcontroller.
@@ -90,8 +104,12 @@ window.View = new Class
 # --------
 #
 # Special kind of view that only manages the List in a ListController.
+# Normally, you wouldn't instantiate this yourself unless you really
+# wanted to.
 #
 window.ListView = new Class
+
+  $rickshawType: "ListView"
 
   Extends: View
 
@@ -104,6 +122,7 @@ window.ListView = new Class
     @controller.addEvents
       modelAppend: this.append
       modelPrepend: this.prepend
+      modelInsert: this.insert
     return this
 
   toString: -> "<Rickshaw.ListView #{@selector}>"
@@ -135,4 +154,14 @@ window.ListView = new Class
     view = this._subview( subcontroller, "unshift" )
     view.renderTo( this.listElement(), "top" )
 
-  Binds: ["append", "prepend"]
+  insert: (subcontroller, position) ->
+    if position is 0
+      this.prepend( subcontroller )
+    else if position is @subviews.length
+      this.append( subcontroller )
+    else
+      bottomMorph = @subviews[position].morph
+      view = this._subview( subcontroller, position )
+      view.renderTo( bottomMorph.startMarkerElement(), "before" )
+
+  Binds: ["append", "prepend", "insert"]

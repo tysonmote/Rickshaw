@@ -11,7 +11,7 @@
 #
 Rickshaw.Metamorph = new Class({
 
-  $family: -> "Metamorph"
+  $rickshawType: -> "Metamorph"
 
   # Create a new Metamorph but don't insert it into the DOM yet.
   initialize: (@view, html="") ->

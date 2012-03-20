@@ -18,7 +18,7 @@ describe "Controller", ->
       expect( @todoController.rendered ).to.be( false )
       expect( $$( "p.todo" ) ).to.be.empty()
 
-  describe "preattached events", ->
+  describe "pre-attached events", ->
     it "attaches on initialize", ->
       MyController = new Controller( onCoolEvent: -> )
       controller = new MyController()

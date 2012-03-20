@@ -111,6 +111,19 @@ Fixtures.renderedTodoWithClickEvent = ->
   )
   @todoController = new @TodoController( @todo, $( "test" ) )
 
+Fixtures.todoListController = ->
+  Fixtures.todoController.call( this )
+  @todo1 = new @Todo( num: 1 )
+  @todo2 = new @Todo( num: 2 )
+  @TodoList = new List( ModelClass: @Todo )
+  @todoList = new @TodoList([ @todo1, @todo2 ])
+  Rickshaw.addTemplate( "todos", "<h2>Todos</h2> {{ list \"div.todos\" }}" )
+  @TodoListController = new ListController(
+    Template: "todos"
+    Subcontroller: @TodoController
+  )
+
+
 # ================
 # = EventCapture =
 # ================
